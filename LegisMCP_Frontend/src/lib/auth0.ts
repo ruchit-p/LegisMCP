@@ -1,113 +1,115 @@
-import { getSession } from '@auth0/nextjs-auth0';
+import { createAuth0Client, Auth0Client } from '@auth0/auth0-react';
 
 // MARK: - Auth0 Configuration
-/**
- * Auth0 configuration object
- */
 export const auth0Config = {
-  domain: process.env.AUTH0_ISSUER_BASE_URL!,
-  clientId: process.env.AUTH0_CLIENT_ID!,
-  clientSecret: process.env.AUTH0_CLIENT_SECRET!,
-  baseUrl: process.env.AUTH0_BASE_URL!,
-  secret: process.env.AUTH0_SECRET!,
-} as const;
+  domain: process.env.NEXT_PUBLIC_AUTH0_DOMAIN!,
+  clientId: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!,
+  authorizationParams: {
+    redirect_uri: typeof window !== 'undefined' ? window.location.origin : 'https://legismcp.com',
+    audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+    scope: 'openid profile email offline_access',
+  },
+  useRefreshTokens: true,
+  cacheLocation: 'localstorage' as const,
+};
 
-// MARK: - Auth0 Utility Functions
-/**
- * Get user session from request
- * @param request - Next.js request object
- * @returns User session or null
- */
-export async function getUserSession() {
-  try {
-    const session = await getSession();
-    return session;
-  } catch (error) {
-    console.error('Error getting user session:', error);
-    return null;
-  }
-}
+// MARK: - Auth0 Client Instance
+let auth0Client: Auth0Client | null = null;
 
 /**
- * Get user ID from session
- * @returns User ID or null
+ * Get Auth0 client instance
  */
-export async function getUserId(): Promise<string | null> {
+export const getAuth0Client = async (): Promise<Auth0Client> => {
+  if (!auth0Client && typeof window !== 'undefined') {
+    auth0Client = await createAuth0Client(auth0Config);
+  }
+  return auth0Client!;
+};
+
+// MARK: - Auth0 Helper Functions
+
+/**
+ * Login with redirect to Auth0 Universal Login
+ */
+export const loginWithRedirect = async (options?: { 
+  screen_hint?: 'signup' | 'login';
+  prompt?: string;
+}) => {
+  const client = await getAuth0Client();
+  await client.loginWithRedirect({
+    authorizationParams: {
+      ...auth0Config.authorizationParams,
+      screen_hint: options?.screen_hint,
+      prompt: options?.prompt,
+    },
+  });
+};
+
+/**
+ * Logout and redirect to homepage
+ */
+export const logout = async () => {
+  const client = await getAuth0Client();
+  await client.logout({
+    logoutParams: {
+      returnTo: typeof window !== 'undefined' ? window.location.origin : 'https://legismcp.com',
+    },
+  });
+};
+
+/**
+ * Get access token for API calls
+ */
+export const getAccessToken = async () => {
   try {
-    const session = await getUserSession();
-    return session?.user?.sub || null;
+    const client = await getAuth0Client();
+    return await client.getTokenSilently();
   } catch (error) {
-    console.error('Error getting user ID:', error);
+    console.error('Error getting access token:', error);
     return null;
   }
-}
+};
+
+/**
+ * Get user profile
+ */
+export const getUser = async () => {
+  try {
+    const client = await getAuth0Client();
+    return await client.getUser();
+  } catch (error) {
+    console.error('Error getting user:', error);
+    return null;
+  }
+};
 
 /**
  * Check if user is authenticated
- * @returns True if user is authenticated, false otherwise
  */
-export async function isAuthenticated(): Promise<boolean> {
+export const isAuthenticated = async (): Promise<boolean> => {
   try {
-    const session = await getUserSession();
-    return !!session?.user;
+    const client = await getAuth0Client();
+    return await client.isAuthenticated();
   } catch (error) {
     console.error('Error checking authentication:', error);
     return false;
   }
+};
+
+// MARK: - Types
+export interface Auth0User {
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  name: string;
+  nickname: string;
+  picture: string;
+  updated_at: string;
 }
 
-/**
- * Get user profile from session
- * @returns User profile or null
- */
-export async function getUserProfile() {
-  try {
-    const session = await getUserSession();
-    if (!session?.user) return null;
-    
-    return {
-      id: session.user.sub,
-      email: session.user.email,
-      name: session.user.name,
-      nickname: session.user.nickname,
-      picture: session.user.picture,
-      emailVerified: session.user.email_verified,
-      updatedAt: session.user.updated_at,
-    };
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    return null;
-  }
-}
-
-// MARK: - Auth0 Error Handling
-/**
- * Auth0 error types
- */
-export enum Auth0Error {
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  INVALID_TOKEN = 'INVALID_TOKEN',
-}
-
-/**
- * Auth0 error response helper
- * @param error - Auth0 error type
- * @param message - Optional error message
- * @returns Error response object
- */
-export function createAuth0ErrorResponse(error: Auth0Error, message?: string) {
-  const errorMessages = {
-    [Auth0Error.UNAUTHORIZED]: 'Authentication required',
-    [Auth0Error.FORBIDDEN]: 'Access denied',
-    [Auth0Error.SESSION_EXPIRED]: 'Session expired',
-    [Auth0Error.INVALID_TOKEN]: 'Invalid authentication token',
-  };
-  
-  return {
-    error: error,
-    message: message || errorMessages[error],
-    statusCode: error === Auth0Error.UNAUTHORIZED ? 401 : 403,
-  };
+export interface AuthState {
+  user: Auth0User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: Error | null;
 } 

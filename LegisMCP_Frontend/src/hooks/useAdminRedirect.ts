@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useUserRole } from './useUserRole';
 
 interface UseAdminRedirectOptions {
@@ -16,7 +16,9 @@ export function useAdminRedirect({
   redirectTo = '/admin/dashboard',
   excludePaths = ['/admin', '/api', '/auth']
 }: UseAdminRedirectOptions = {}) {
-  const { user, isLoading: authLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading, isAdmin, isSuperAdmin } = useUserRole();
   const router = useRouter();
 

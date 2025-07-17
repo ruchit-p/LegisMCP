@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 /**
  * GET /api/user/subscription - Get user's subscription information
@@ -7,7 +8,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 export async function GET() {
   try {
     // Get user session
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },

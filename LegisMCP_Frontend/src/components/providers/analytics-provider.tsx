@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getUserActivityLogger } from '@/lib/user-activity-logger';
 
@@ -32,10 +32,14 @@ interface AnalyticsProviderProps {
 }
 
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
-  const { user, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isLoading = status === 'loading';
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const logger = getUserActivityLogger();
+  
+  // Only initialize logger in browser environment
+  const logger = typeof window !== 'undefined' ? getUserActivityLogger() : null;
   
   // Track previous page for navigation analytics
   const previousPathRef = useRef<string | null>(null);
@@ -62,7 +66,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
     // Don't track the initial load as navigation
     if (isInitialLoadRef.current) {
       isInitialLoadRef.current = false;
-      logger.logPageView(undefined, undefined, true);
+      logger?.logPageView(undefined, undefined, true);
       console.log('Analytics: Initial page load tracked:', currentPath);
     } else {
       // Track page navigation
@@ -74,10 +78,10 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         console.log('Analytics: Time on previous page:', timeOnPreviousPage, 'ms');
         
         // Log navigation event
-        logger.logNavigation('click', currentPath, previousPath);
+        logger?.logNavigation('click', currentPath, previousPath);
         
         // Log new page view
-        logger.logPageView(previousPath, undefined, false);
+        logger?.logPageView(previousPath, undefined, false);
         
         console.log('Analytics: Navigation tracked:', previousPath, '->', currentPath);
       }
@@ -92,7 +96,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   useEffect(() => {
     const handleBeforeUnload = () => {
       const timeOnPage = Date.now() - pageStartTimeRef.current;
-      logger.logTimeOnPage();
+      logger?.logTimeOnPage();
       console.log('Analytics: Session ending, time on page:', timeOnPage, 'ms');
     };
 
@@ -100,7 +104,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       if (document.hidden) {
         // User switched away from tab
         const timeOnPage = Date.now() - pageStartTimeRef.current;
-        logger.logTimeOnPage();
+        logger?.logTimeOnPage();
         console.log('Analytics: Tab hidden, time on page:', timeOnPage, 'ms');
       } else {
         // User came back to tab
@@ -145,7 +149,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   // Context value with helper methods
   const contextValue: AnalyticsContextType = {
     logButtonClick: (buttonText: string, buttonId?: string, buttonClass?: string, section?: string) => {
-      logger.logButtonClick(buttonText, buttonId, buttonClass, section);
+      logger?.logButtonClick(buttonText, buttonId, buttonClass, section);
       console.log('Analytics: Button click tracked:', buttonText, 'in section:', section);
     },
 
@@ -155,7 +159,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       interactionType: 'focus' | 'blur' | 'change' | 'submit' | 'abandon',
       fieldName?: string
     ) => {
-      logger.logFormInteraction(formId, formName, interactionType, fieldName);
+      logger?.logFormInteraction(formId, formName, interactionType, fieldName);
       console.log('Analytics: Form interaction tracked:', formName, interactionType, fieldName);
     },
 
@@ -165,12 +169,12 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       filters?: Record<string, string>,
       resultsCount?: number
     ) => {
-      logger.logSearchQuery(query, searchType, filters, resultsCount);
+      logger?.logSearchQuery(query, searchType, filters, resultsCount);
       console.log('Analytics: Search query tracked:', query, 'type:', searchType, 'results:', resultsCount);
     },
 
     logFeatureUsage: (featureName: string, featureCategory: string, success: boolean = true) => {
-      logger.logFeatureUsage(featureName, featureCategory, undefined, undefined, success);
+      logger?.logFeatureUsage(featureName, featureCategory, undefined, undefined, success);
       console.log('Analytics: Feature usage tracked:', featureName, 'category:', featureCategory, 'success:', success);
     },
 
@@ -179,7 +183,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       errorMessage: string,
       severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
     ) => {
-      logger.logError(errorType, errorMessage, undefined, severity);
+      logger?.logError(errorType, errorMessage, undefined, severity);
       console.log('Analytics: Error tracked:', errorType, errorMessage, 'severity:', severity);
     }
   };
@@ -225,7 +229,7 @@ export function withAnalytics<T extends object>(
 
 // Hook for automatic scroll tracking
 export function useScrollTracking() {
-  const logger = getUserActivityLogger();
+  const logger = typeof window !== 'undefined' ? getUserActivityLogger() : null;
   
   useEffect(() => {
     let maxScrollDepth = 0;
@@ -243,7 +247,7 @@ export function useScrollTracking() {
         
         if (scrollPercent > maxScrollDepth) {
           maxScrollDepth = scrollPercent;
-          logger.logScrollDepth(maxScrollDepth);
+          logger?.logScrollDepth(maxScrollDepth);
           console.log('Analytics: Scroll depth tracked:', maxScrollDepth, '%');
         }
       }, 100);

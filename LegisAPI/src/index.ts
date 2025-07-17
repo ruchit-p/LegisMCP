@@ -16,6 +16,7 @@ import { mcpRoutes } from "./routes/mcp";
 import { analyticsRoutes } from "./routes/analytics";
 import alertsRoutes from "./routes/alerts";
 import { monitoringRoutes } from "./routes/monitoring";
+import { sessionRoutes } from "./routes/session";
 
 const app = new Hono<{
 	Bindings: Env;
@@ -42,6 +43,9 @@ app.route('/api/webhooks', webhookRoutes);
 
 // Public configuration routes (no auth required)
 app.route('/api/config', configRoutes);
+
+// Session routes (for Auth.js integration - no auth required)
+app.route('/api/sessions', sessionRoutes);
 
 // Apply JWT auth to all other routes
 app.use("/api/*", async (c, next) => {

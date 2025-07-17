@@ -296,17 +296,20 @@ export class UserActivityLogger {
    * Create base event data
    */
   private createBaseEvent(eventType: UserActivityEventType): BaseUserActivityEvent {
+    // Check if we're in the browser environment
+    const isBrowser = typeof window !== 'undefined';
+    
     return {
       event_type: eventType,
       timestamp: Date.now(),
       session_id: this.sessionId,
-      page_url: window.location.href,
-      page_title: document.title,
-      referrer: document.referrer,
-      user_agent: navigator.userAgent,
+      page_url: isBrowser ? window.location.href : '',
+      page_title: isBrowser ? document.title : '',
+      referrer: isBrowser ? document.referrer : '',
+      user_agent: isBrowser ? navigator.userAgent : '',
       viewport_size: {
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: isBrowser ? window.innerWidth : 0,
+        height: isBrowser ? window.innerHeight : 0
       },
       device_type: this.deviceType
     };

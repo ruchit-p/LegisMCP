@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useUserRole } from './useUserRole';
 
 export interface RoleRedirectConfig {
@@ -26,7 +26,9 @@ export function useRoleBasedRedirect({
   excludePaths = ['/admin', '/api', '/auth', '/profile', '/billing'],
   includeSubpaths = true
 }: UseRoleBasedRedirectOptions = {}) {
-  const { user, isLoading: authLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading } = useUserRole();
   const router = useRouter();
 

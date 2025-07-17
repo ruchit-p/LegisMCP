@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/database';
 
-export const GET = withApiAuthRequired(async () => {
+export const GET = async () => {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json(
@@ -14,7 +14,7 @@ export const GET = withApiAuthRequired(async () => {
       );
     }
 
-    const userId = session.user.sub;
+    const userId = session.user.id;
     const userEmail = session.user.email;
 
     // Try to get user from database first
@@ -65,7 +65,7 @@ export const GET = withApiAuthRequired(async () => {
       { status: 500 }
     );
   }
-});
+};
 
 // Mock function to determine user role
 // Replace this with actual database query in production

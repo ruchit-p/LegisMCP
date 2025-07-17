@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface GlobalRedirectConfig {
@@ -35,7 +35,9 @@ const defaultConfig: GlobalRedirectConfig = {
 };
 
 export function GlobalRedirectProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoading: authLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading } = useUserRole();
   const router = useRouter();
 

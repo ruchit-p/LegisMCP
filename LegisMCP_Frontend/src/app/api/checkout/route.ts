@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { 
   validateStripeConfig, 
   isValidPlan, 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user session
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -81,11 +82,11 @@ export async function POST(request: NextRequest) {
         'line_items[0][price]': priceId,
         'line_items[0][quantity]': '1',
         'customer_email': session.user.email!,
-        'client_reference_id': session.user.sub,
-        'metadata[auth0_user_id]': session.user.sub,
+        'client_reference_id': session.user.id,
+        'metadata[auth0_user_id]': session.user.id,
         'metadata[plan_id]': planId,
         'metadata[billing_frequency]': billingFrequency,
-        'subscription_data[metadata][auth0_user_id]': session.user.sub,
+        'subscription_data[metadata][auth0_user_id]': session.user.id,
         'subscription_data[metadata][plan_id]': planId,
         'subscription_data[metadata][billing_frequency]': billingFrequency,
         'allow_promotion_codes': 'true',

@@ -1,67 +1,102 @@
-import { useUser } from '@auth0/nextjs-auth0/client';
-import { useRouter } from 'next/navigation';
+import { useAuth0 as useAuth0React } from '@auth0/auth0-react';
 import { useCallback } from 'react';
 
-// MARK: - Auth0 React Hooks
+// MARK: - Auth0 Hook
 /**
- * Custom hook for Auth0 authentication
- * Provides user information and authentication utilities
+ * Custom Auth0 hook with Universal Login
+ * Provides authentication state and methods
  */
 export function useAuth0() {
-  const { user, error, isLoading } = useUser();
-  const router = useRouter();
-
-  // MARK: - Authentication Status
-  const isAuthenticated = Boolean(user);
-  const isGuest = !isAuthenticated && !isLoading;
-
-  // MARK: - User Information
-  const userProfile = user ? {
-    id: user.sub!,
-    email: user.email!,
-    name: user.name || '',
-    nickname: user.nickname || '',
-    picture: user.picture || '',
-    emailVerified: user.email_verified || false,
-    updatedAt: user.updated_at || '',
-  } : null;
-
-  // MARK: - Authentication Actions
-  const login = useCallback((returnTo?: string) => {
-    const url = returnTo 
-      ? `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`
-      : '/api/auth/login';
-    router.push(url);
-  }, [router]);
-
-  const logout = useCallback(() => {
-    router.push('/api/auth/logout');
-  }, [router]);
-
-  const loginWithRedirect = useCallback((returnTo?: string) => {
-    login(returnTo);
-  }, [login]);
-
-  // MARK: - Loading States
-  const isAuthLoading = isLoading;
-
-  return {
-    // User information
-    user: userProfile,
-    rawUser: user,
-    
-    // Authentication status
+  const {
+    user,
     isAuthenticated,
-    isGuest,
-    isLoading: isAuthLoading,
-    
-    // Authentication actions
-    login,
-    logout,
-    loginWithRedirect,
-    
-    // Error handling
+    isLoading,
     error,
+    loginWithRedirect,
+    logout: auth0Logout,
+    getAccessTokenSilently,
+  } = useAuth0React();
+
+  // MARK: - Authentication Methods
+  
+  /**
+   * Login with Auth0 Universal Login
+   */
+  const login = useCallback(async (options?: { 
+    screen_hint?: 'signup' | 'login';
+    prompt?: string;
+  }) => {
+    try {
+      await loginWithRedirect({
+        authorizationParams: {
+          screen_hint: options?.screen_hint,
+          prompt: options?.prompt,
+        },
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  }, [loginWithRedirect]);
+
+  /**
+   * Signup with Auth0 Universal Login  
+   */
+  const signup = useCallback(async () => {
+    try {
+      await loginWithRedirect({
+        authorizationParams: {
+          screen_hint: 'signup',
+        },
+      });
+    } catch (error) {
+      console.error('Signup error:', error);
+    }
+  }, [loginWithRedirect]);
+
+  /**
+   * Logout and redirect to homepage
+   */
+  const logout = useCallback(async () => {
+    try {
+      await auth0Logout({
+        logoutParams: {
+          returnTo: window.location.origin,
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  }, [auth0Logout]);
+
+  /**
+   * Get access token for API calls
+   */
+  const getAccessToken = useCallback(async () => {
+    try {
+      if (!isAuthenticated) return null;
+      return await getAccessTokenSilently();
+    } catch (error) {
+      console.error('Error getting access token:', error);
+      return null;
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  // MARK: - Return State and Methods
+  return {
+    // Auth state
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    
+    // Auth methods
+    login,
+    signup,
+    logout,
+    getAccessToken,
+    
+    // Utility methods
+    loginWithRedirect,
   };
 }
 

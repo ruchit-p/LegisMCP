@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useUserRole, UserRole } from '@/hooks/useUserRole';
 
@@ -16,7 +16,9 @@ export function WithRoleCheck({
   fallback,
   redirectTo = '/dashboard'
 }: WithRoleCheckProps) {
-  const { user, isLoading: authLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading, hasRole } = useUserRole();
   const router = useRouter();
 

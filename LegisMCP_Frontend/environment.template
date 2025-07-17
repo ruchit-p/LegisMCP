@@ -5,14 +5,14 @@
 # This file documents all required environment variables for the LegislativeMCP frontend
 
 # =============================================================================
-# AUTH0 CONFIGURATION (Next.js SDK)
+# AUTH.JS (NextAuth.js) + AUTH0 CONFIGURATION
 # =============================================================================
 # A long, secret value used to encrypt the session cookie
 # Generate with: openssl rand -hex 32
-AUTH0_SECRET=your_long_secret_value_here
+NEXTAUTH_SECRET=your_long_secret_value_here
 
 # The base URL of your application
-APP_BASE_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
 
 # The URL of your Auth0 tenant domain
 AUTH0_ISSUER_BASE_URL=https://your-auth0-domain.auth0.com
@@ -67,9 +67,9 @@ CLOUDFLARE_WORKER_URL=https://api.example.com
 # 1. Replace all placeholder values with your actual credentials
 # 2. Never commit the actual .env.local file to version control
 # 3. For production deployments:
-#    - Set APP_BASE_URL to your production domain
+#    - Set NEXTAUTH_URL to your production domain
 #    - Set NEXT_PUBLIC_MCP_SERVER_URL to your backend URL
 #    - Use production Stripe keys (pk_live_...)
 #    - Use production Auth0 application settings
-# 4. For Vercel deployment, set these as environment variables in the dashboard
-# 5. Generate a secure AUTH0_SECRET for production with: openssl rand -hex 32 
+# 4. For wrangler deployment, set these as environment variables in the dashboard
+# 5. Generate a secure NEXTAUTH_SECRET for production with: openssl rand -hex 32 

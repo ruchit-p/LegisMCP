@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session) {
       return NextResponse.json({ 
@@ -17,7 +18,7 @@ export async function GET() {
       user: {
         email: session.user.email,
         name: session.user.name,
-        sub: session.user.sub,
+        id: session.user.id,
       }
     });
   } catch (error) {

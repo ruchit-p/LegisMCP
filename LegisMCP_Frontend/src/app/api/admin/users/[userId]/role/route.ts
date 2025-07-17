@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 // Helper function to check if user is admin
 async function isUserAdmin(): Promise<boolean> {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) return false;
 
     const userEmail = session.user.email;
@@ -29,7 +29,7 @@ async function isUserAdmin(): Promise<boolean> {
   }
 }
 
-export const PUT = withApiAuthRequired(async (req: NextRequest, { params }: { params: { userId: string } }) => {
+export const PUT = async (req: NextRequest, { params }: { params: { userId: string } }) => {
   try {
     // Check if user is admin
     const isAdmin = await isUserAdmin();
@@ -54,8 +54,8 @@ export const PUT = withApiAuthRequired(async (req: NextRequest, { params }: { pa
     }
 
     // Get current user session to prevent self-demotion
-    const session = await getSession();
-    if (session?.user?.sub === userId && role === 'user') {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id === userId && role === 'user') {
       return NextResponse.json(
         { error: 'Cannot demote yourself from admin role' },
         { status: 400 }
@@ -86,6 +86,6 @@ export const PUT = withApiAuthRequired(async (req: NextRequest, { params }: { pa
       { status: 500 }
     );
   }
-});
+};
 
 export const runtime = 'nodejs';

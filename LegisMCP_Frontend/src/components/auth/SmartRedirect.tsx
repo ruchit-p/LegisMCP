@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuth0 } from '@/hooks/use-auth0';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface SmartRedirectProps {
@@ -10,93 +10,60 @@ interface SmartRedirectProps {
 }
 
 export function SmartRedirect({ children }: SmartRedirectProps) {
-  const { user, isLoading: authLoading } = useUser();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth0();
   const { role, isLoading: roleLoading } = useUserRole();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Don't redirect if still loading
-    if (authLoading || roleLoading) {
+    // Don't redirect while loading
+    if (authLoading || roleLoading) return;
+    
+    // Handle authentication redirects
+    if (!isAuthenticated) {
+      // Public routes - no redirect needed
+      const publicRoutes = ['/', '/contact', '/contact/enterprise'];
+      if (publicRoutes.includes(pathname)) return;
+      
+      // Protected route - redirect to home
+      router.push('/');
       return;
     }
 
-    // Don't redirect if user is not authenticated
-    if (!user || !role) {
-      return;
-    }
-
-    // Define redirect rules based on user role and current path
-    const redirectRules = {
-      admin: {
-        from: ['/', '/dashboard'],
-        to: '/admin/dashboard'
-      },
-      super_admin: {
-        from: ['/', '/dashboard'],
-        to: '/admin/dashboard'
-      },
-      user: {
-        from: ['/'],
-        to: '/dashboard'
+    // User is authenticated - handle role-based redirects
+    if (role) {
+      // Admin users accessing general areas - redirect to admin dashboard
+      if (role === 'admin' && pathname === '/dashboard') {
+        router.push('/admin/dashboard');
+        return;
       }
-    };
-
-    // Paths that should never be redirected
-    const excludedPaths = [
-      '/admin',
-      '/api',
-      '/auth',
-      '/profile',
-      '/billing',
-      '/contact',
-      '/docs',
-      '/api-docs',
-      '/privacy',
-      '/terms'
-    ];
-
-    // Check if current path is excluded
-    const isExcluded = excludedPaths.some(path => pathname.startsWith(path));
-    if (isExcluded) {
-      return;
+      
+      // Regular users accessing admin areas - redirect to regular dashboard
+      if (role !== 'admin' && pathname.startsWith('/admin')) {
+        router.push('/dashboard');
+        return;
+      }
     }
+  }, [isAuthenticated, authLoading, roleLoading, role, pathname, router]);
 
-    // Get redirect rule for current user's role
-    const ruleForRole = redirectRules[role];
-    if (!ruleForRole) {
-      return;
-    }
+  // Show loading state while authenticating
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-    // Check if current path matches a redirect pattern
-    const shouldRedirect = ruleForRole.from.includes(pathname);
-    if (!shouldRedirect) {
-      return;
-    }
-
-    // Don't redirect if already on the target path
-    if (pathname === ruleForRole.to) {
-      return;
-    }
-
-    // Perform the redirect
-    console.log(`Smart redirect: ${role} user from ${pathname} to ${ruleForRole.to}`);
-    router.push(ruleForRole.to);
-  }, [
-    authLoading,
-    roleLoading,
-    user,
-    role,
-    pathname,
-    router
-  ]);
-
-  return <>{children}</>;
+  return <div className="min-h-screen bg-white">{children}</div>;
 }
 
 // Hook to get redirect status for display purposes
 export function useRedirectStatus() {
-  const { user, isLoading: authLoading } = useUser();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth0();
   const { role, isLoading: roleLoading } = useUserRole();
   const pathname = usePathname();
 

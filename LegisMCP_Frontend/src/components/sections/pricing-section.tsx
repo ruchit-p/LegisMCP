@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Check, Loader2, Star, Zap, Shield, Building, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/stripe-config';
 import { useAnalytics } from '@/components/providers/analytics-provider';
@@ -96,7 +96,8 @@ const tiers = [
 export function PricingSection() {
   const [billingFrequency, setBillingFrequency] = useState<'monthly' | 'yearly'>('monthly');
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const analytics = useAnalytics();
 

@@ -1,17 +1,12 @@
-import { UserProvider } from '@auth0/nextjs-auth0/client'
 import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
 import './globals.css'
-import { Toaster } from '@/components/ui/toaster'
-import { ThemeProvider } from '@/components/providers/theme-provider'
-import { StripeProvider } from '@/components/providers/stripe-provider'
-import { AnalyticsProvider } from '@/components/providers/analytics-provider'
-import { SmartRedirect } from '@/components/auth/SmartRedirect'
+import { ClientProviders } from '@/components/providers/client-providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.AUTH0_BASE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: 'LegislativeMCP - Legislative MCP Server Platform',
   description: 'Enterprise-grade MCP server for Legislative data access, AI integration, and Legislative intelligence.',
   keywords: ['MCP', 'Legislative', 'AI', 'Legislative Data', 'Model Context Protocol', 'Government'],
@@ -22,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'LegislativeMCP - Legislative MCP Server Platform',
     description: 'Enterprise-grade MCP server for Legislative data access, AI integration, and Legislative intelligence.',
-    url: process.env.AUTH0_BASE_URL,
+    url: process.env.NEXTAUTH_URL,
     siteName: 'LegislativeMCP',
     locale: 'en_US',
     type: 'website',
@@ -51,25 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <UserProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <StripeProvider>
-              <AnalyticsProvider>
-                <SmartRedirect>
-                  <div className="min-h-screen bg-white">
-                    {children}
-                  </div>
-                </SmartRedirect>
-                <Toaster />
-              </AnalyticsProvider>
-            </StripeProvider>
-          </ThemeProvider>
-        </UserProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   )

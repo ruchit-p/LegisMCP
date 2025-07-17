@@ -67,22 +67,7 @@ CREATE TABLE IF NOT EXISTS mcp_logs (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Enhanced API usage tracking with more details
-CREATE TABLE IF NOT EXISTS api_usage_enhanced (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    endpoint TEXT NOT NULL,
-    method TEXT NOT NULL,
-    status_code INTEGER,
-    response_time_ms INTEGER,
-    request_size_bytes INTEGER,
-    response_size_bytes INTEGER,
-    error_message TEXT,
-    ip_address TEXT,
-    user_agent TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
+-- Enhanced API usage tracking removed - was unused
 
 -- Indexes for performance on new tables
 CREATE INDEX idx_user_activity_events_user_id ON user_activity_events(user_id);
@@ -96,9 +81,7 @@ CREATE INDEX idx_mcp_logs_tool_name ON mcp_logs(tool_name);
 CREATE INDEX idx_mcp_logs_timestamp ON mcp_logs(timestamp);
 CREATE INDEX idx_mcp_logs_status ON mcp_logs(status);
 
-CREATE INDEX idx_api_usage_enhanced_user_id ON api_usage_enhanced(user_id);
-CREATE INDEX idx_api_usage_enhanced_endpoint ON api_usage_enhanced(endpoint);
-CREATE INDEX idx_api_usage_enhanced_timestamp ON api_usage_enhanced(timestamp);
+-- api_usage_enhanced indexes removed - table was unused
 
 -- Trigger to update updated_at on users table
 CREATE TRIGGER update_users_updated_at 

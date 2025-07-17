@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0/edge';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 // MARK: - Types
 interface MCPLogEntry {
@@ -109,7 +110,7 @@ const getMCPUsageData = async (accessToken: string) => {
 
 export async function GET() {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json(

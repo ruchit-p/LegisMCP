@@ -1,4 +1,4 @@
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 
 export interface Alert {
   id: string;
@@ -198,7 +198,8 @@ class AlertsService {
 
 // Custom hook for using alerts service
 export function useAlertsService() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const service = new AlertsService();
 
   const initializeService = async () => {

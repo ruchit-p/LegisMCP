@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 interface ApiKey {
   isActive: boolean;
 }
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,9 @@ import {
  * Provides access to API key management and usage tracking.
  */
 export default function DashboardPage() {
-  const { user, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isLoading = status === 'loading';
   const [activeTab, setActiveTab] = useState('overview');
   const [dashboardData, setDashboardData] = useState<{
     activeKeys: number;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0/edge';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import Stripe from 'stripe';
 
 // MARK: - Types
@@ -15,7 +16,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST() {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json(
@@ -25,7 +26,7 @@ export async function POST() {
     }
 
     // Get user's Stripe customer ID from your backend
-    // For now, we'll mock this
+    // For now, we'll mock this - in production, you'd fetch this from your user database
     const customerId = session.user.stripeCustomerId;
     
     if (!customerId) {

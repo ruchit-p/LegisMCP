@@ -3,134 +3,102 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Zap, Code, Database, Brain } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth0 } from '@/hooks/use-auth0'
 import { useAnalytics } from '@/components/providers/analytics-provider'
 
 export function HeroSection() {
-  const analytics = useAnalytics();
+  const { login } = useAuth0()
+  const { logButtonClick } = useAnalytics()
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/20 py-24 sm:py-32">
-      <div className="container relative">
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 opacity-30">
-            <div className="h-[800px] w-[800px] rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl" />
-          </div>
-        </div>
+    <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20 pb-16 overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-100 opacity-20 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-purple-100 opacity-20 blur-3xl" />
+      </div>
 
-        <div className="mx-auto max-w-4xl text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center rounded-full bg-muted px-4 py-2 text-sm font-medium ring-1 ring-border">
-            <Zap className="mr-2 h-4 w-4 text-primary" />
-            Professional MCP Server for Legislative Data
-          </div>
-
-          {/* Main heading */}
-          <h1 className="mt-8 text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-            Connect AI to
-            <span className="block text-primary">Legislative Intelligence</span>
+      <div className="container mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          {/* Main headline */}
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Enterprise
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Legislative</span>
+            <br />
+            MCP Server Platform
           </h1>
 
-          {/* Subheading */}
-          <p className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl max-w-3xl mx-auto">
-            Enterprise-grade MCP server that seamlessly integrates live Legislative data into your AI workflows. 
-            Enable context-aware applications with real-time access to bills, voting records, and legislative insights.
+          {/* Subheadline */}
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Unlock the power of Congressional data with our enterprise-grade MCP server. 
+            Seamlessly integrate legislative intelligence into your AI applications.
           </p>
 
-          {/* Key benefits */}
-          <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
-            <div className="flex items-center bg-background/50 rounded-full px-4 py-2 ring-1 ring-border">
-              <Brain className="mr-2 h-4 w-4 text-primary" />
-              <span className="font-medium">AI-Native Integration</span>
-            </div>
-            <div className="flex items-center bg-background/50 rounded-full px-4 py-2 ring-1 ring-border">
-              <Database className="mr-2 h-4 w-4 text-primary" />
-              <span className="font-medium">Real-Time Data Access</span>
-            </div>
-            <div className="flex items-center bg-background/50 rounded-full px-4 py-2 ring-1 ring-border">
-              <Code className="mr-2 h-4 w-4 text-primary" />
-              <span className="font-medium">Standard MCP Protocol</span>
-            </div>
-          </div>
-
-          {/* CTA buttons */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8" 
-              asChild
+              onClick={() => {
+                logButtonClick('Start Free Trial', 'hero-cta-primary', 'bg-primary hover:bg-primary/90 text-primary-foreground px-8', 'hero');
+                login({ screen_hint: 'signup' });
+              }}
             >
-              <a 
-                href="/api/auth/signup"
-                onClick={() => analytics.logButtonClick('Start Free Trial', 'hero-cta-primary', 'bg-primary hover:bg-primary/90 text-primary-foreground px-8', 'hero')}
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+              Start Free Trial
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            
             <Button 
               variant="outline" 
               size="lg" 
-              className="px-8" 
+              className="px-8"
+              onClick={() => {
+                logButtonClick('View Documentation', 'hero-cta-secondary', 'outline', 'hero');
+              }}
               asChild
             >
-              <Link 
-                href="#features"
-                onClick={() => analytics.logButtonClick('View Features', 'hero-cta-secondary', 'outline px-8', 'hero')}
-              >
-                View Features
+              <Link href="/docs">
+                View Documentation
               </Link>
             </Button>
           </div>
 
-          {/* Trust indicators */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              Trusted by AI developers, government contractors, and enterprise teams
-            </p>
-            <div className="mt-6 flex justify-center items-center space-x-8">
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span>99.9% Uptime</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <span>SOC 2 Compliant</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <div className="h-2 w-2 rounded-full bg-purple-500" />
-                <span>Enterprise Ready</span>
-              </div>
+          {/* Features grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <Zap className="h-8 w-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Real-time Data</h3>
+              <p className="text-sm text-gray-600">Live Congressional data updates as they happen</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <Code className="h-8 w-8 text-purple-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Easy Integration</h3>
+              <p className="text-sm text-gray-600">MCP protocol for seamless AI integration</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <Database className="h-8 w-8 text-green-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Comprehensive</h3>
+              <p className="text-sm text-gray-600">Bills, members, votes, and legislative history</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <Brain className="h-8 w-8 text-orange-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">AI-Ready</h3>
+              <p className="text-sm text-gray-600">Structured data perfect for LLM applications</p>
             </div>
           </div>
-        </div>
 
-        {/* Code example preview */}
-        <div className="mx-auto mt-16 max-w-5xl">
-          <div className="relative rounded-xl bg-muted/50 p-2 ring-1 ring-inset ring-border">
-            <div className="overflow-hidden rounded-lg bg-background shadow-2xl">
-              <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
-                <div className="h-3 w-3 rounded-full bg-red-500" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                <div className="ml-auto text-xs text-muted-foreground font-mono">
-                  MCP Server Configuration
-                </div>
-              </div>
-              <div className="bg-slate-950 text-slate-50 p-6 font-mono text-sm overflow-x-auto">
-                <div className="space-y-2">
-                  <div className="text-slate-400"># Connect to Legislative MCP Server</div>
-                  <div className="text-green-400">
-                    <span className="text-blue-400">mcp_server:</span>
-                  </div>
-                  <div className="ml-4 text-green-400">
-                    <span className="text-blue-400">url:</span> <span className="text-yellow-400">&quot;https://api.example.com/mcp&quot;</span>
-                  </div>
-                  <div className="ml-4 text-green-400">
-                    <span className="text-blue-400">tools:</span> <span className="text-yellow-400">[&quot;search&quot;, &quot;analysis&quot;, &quot;member_info&quot;]</span>
-                  </div>
-                  <div className="mt-4 text-slate-400"># Your AI can now access Legislative data</div>
-                </div>
-              </div>
+          {/* Social proof */}
+          <div className="mt-16 text-center">
+            <p className="text-sm text-gray-500 mb-4">Trusted by developers and enterprises</p>
+            <div className="flex justify-center items-center space-x-8 opacity-60">
+              {/* Add customer logos here when available */}
+              <div className="text-xs text-gray-400">Government Agencies</div>
+              <div className="text-xs text-gray-400">Legal Tech</div>
+              <div className="text-xs text-gray-400">Policy Research</div>
+              <div className="text-xs text-gray-400">News Organizations</div>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/database';
 
 interface SetupAdminRequest {
@@ -8,9 +8,9 @@ interface SetupAdminRequest {
   role: 'admin' | 'super_admin';
 }
 
-export const POST = withApiAuthRequired(async (req: NextRequest) => {
+export const POST = async (req: NextRequest) => {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     }
 
     // Check if current user is super_admin (only super_admin can create other admins)
-    const currentUser = await db.getUserByAuth0Id(session.user.sub);
+    const currentUser = await db.getUserByAuth0Id(session.user.id);
     
     if (!currentUser.success || !currentUser.data || currentUser.data.role !== 'super_admin') {
       return NextResponse.json(
@@ -89,12 +89,12 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-});
+};
 
 // List all admin accounts
-export const GET = withApiAuthRequired(async () => {
+export const GET = async () => {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json(
@@ -104,7 +104,7 @@ export const GET = withApiAuthRequired(async () => {
     }
 
     // Check if current user is admin or super_admin
-    const currentUser = await db.getUserByAuth0Id(session.user.sub);
+    const currentUser = await db.getUserByAuth0Id(session.user.id);
     
     if (!currentUser.success || !currentUser.data || 
         !['admin', 'super_admin'].includes(currentUser.data.role)) {
@@ -131,6 +131,6 @@ export const GET = withApiAuthRequired(async () => {
       { status: 500 }
     );
   }
-});
+};
 
 export const runtime = 'nodejs';

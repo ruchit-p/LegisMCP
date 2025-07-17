@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 // Helper function to check if user is admin
 async function isUserAdmin(): Promise<boolean> {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user) return false;
 
     const userEmail = session.user.email;
@@ -29,7 +29,7 @@ async function isUserAdmin(): Promise<boolean> {
   }
 }
 
-export const GET = withApiAuthRequired(async (req: NextRequest) => {
+export const GET = async (req: NextRequest) => {
   try {
     // Check if user is admin
     const isAdmin = await isUserAdmin();
@@ -116,6 +116,6 @@ export const GET = withApiAuthRequired(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-});
+};
 
 export const runtime = 'nodejs';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { getUserProfile, createAuth0ErrorResponse, Auth0Error } from '@/lib/auth0';
 
 // MARK: - Auth0 Management API Integration
@@ -95,8 +96,12 @@ const managementClient = new Auth0ManagementClient();
  */
 export async function GET(request: NextRequest) {
     try {
+        // Extract request metadata for logging
+        const userAgent = request.headers.get('user-agent') || 'Unknown';
+        const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Unknown';
+        
         // Get user session
-        const session = await getSession(request, new NextResponse());
+        const session = await getServerSession(authOptions);
         if (!session || !session.user) {
             const errorResponse = createAuth0ErrorResponse(Auth0Error.UNAUTHORIZED);
             return NextResponse.json(errorResponse, { status: errorResponse.statusCode });
@@ -108,6 +113,9 @@ export async function GET(request: NextRequest) {
             const errorResponse = createAuth0ErrorResponse(Auth0Error.INVALID_TOKEN);
             return NextResponse.json(errorResponse, { status: errorResponse.statusCode });
         }
+
+        // Log profile access for audit purposes
+        console.log(`Profile accessed by user ${session.user.email} from IP ${ip} with User-Agent: ${userAgent}`);
 
         return NextResponse.json({ 
             profile,
@@ -128,7 +136,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         // Get user session
-        const session = await getSession(request, new NextResponse());
+        const session = await getServerSession(authOptions);
         if (!session || !session.user) {
             const errorResponse = createAuth0ErrorResponse(Auth0Error.UNAUTHORIZED);
             return NextResponse.json(errorResponse, { status: errorResponse.statusCode });
@@ -221,7 +229,7 @@ export async function PUT(request: NextRequest) {
         }
 
         // Update user profile using Auth0 Management API
-        const updatedUser = await managementClient.updateUser(session.user.sub, updates);
+        const updatedUser = await managementClient.updateUser(session.user.id, updates);
         
         // Return updated profile
         return NextResponse.json({ 

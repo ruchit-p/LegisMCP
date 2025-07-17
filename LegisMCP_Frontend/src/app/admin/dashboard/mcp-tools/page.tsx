@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useSession } from 'next-auth/react';
 import { DashboardLayout, Alert } from '@/components/admin/dashboard-layout';
 import { McpToolsDashboard } from '@/components/admin/mcp-tools-dashboard';
 import { useAnalytics } from '@/components/providers/analytics-provider';
 import { WithRoleCheck } from '@/components/auth/WithRoleCheck';
 
 export default function McpToolsDashboardPage() {
-  const { user, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isLoading = status === 'loading';
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<Alert[]>([]);
 

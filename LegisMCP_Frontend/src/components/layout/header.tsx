@@ -3,9 +3,8 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useUser } from '@auth0/nextjs-auth0/client'
+import { useAuth0 } from '@/hooks/use-auth0'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,229 +12,142 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { 
-  User, 
-  Settings, 
-  CreditCard, 
-  LogOut, 
-  BarChart3,
-  Menu,
-  Shield
-} from 'lucide-react'
-import { useState } from 'react'
-import { useUserRole } from '@/hooks/useUserRole'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 
+const Header = () => {
+  const { user, isAuthenticated, isLoading, login, logout } = useAuth0()
 
-const navigation = [
-  { name: 'Features', href: '#features' },
-  { name: 'Pricing', href: '#pricing' },
-]
-
-export function Header() {
-  const { user, isLoading } = useUser()
-  const { isAdmin, isSuperAdmin } = useUserRole()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  
-  // Combine admin and super admin for simplicity
-  const isAdminUser = isAdmin || isSuperAdmin
+  if (isLoading) {
+    return (
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Image
+              src="/logo.png"
+              alt="LegislativeMCP"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <h1 className="text-xl font-bold">LegislativeMCP</h1>
+          </div>
+          <div className="animate-pulse">
+            <div className="h-8 w-20 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+    <header className="border-b bg-white sticky top-0 z-50">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <Image 
-            src="https://pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev/Legi%20USA%20Logo%20Black%20Transparent.png"
-            alt="LegislativeMCP"
-            width={32}
-            height={32}
-            className="h-8 w-auto"
-          />
-          <span className="font-bold text-xl">LegislativeMCP</span>
-        </Link>
+        <div className="flex items-center space-x-4">
+          <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/logo.png"
+              alt="LegislativeMCP"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <h1 className="text-xl font-bold text-gray-900">LegislativeMCP</h1>
+          </Link>
+        </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex ml-6 space-x-6">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {item.name}
-            </Link>
-          ))}
+        {/* Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          <Link href="/features" className="text-gray-600 hover:text-gray-900">
+            Features
+          </Link>
+          <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
+            Pricing
+          </Link>
+          <Link href="/docs" className="text-gray-600 hover:text-gray-900">
+            Docs
+          </Link>
         </nav>
 
-        {/* Right side */}
-        <div className="ml-auto flex items-center space-x-4">
-          {!isLoading && (
+        {/* Auth Section */}
+        <div className="flex items-center space-x-4">
+          {isAuthenticated && user ? (
             <>
-              {user ? (
-                // Authenticated User Menu
-                <div className="flex items-center space-x-4">
-                  {/* Quick Actions */}
-                  <div className="hidden lg:flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href="/dashboard">
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </Button>
-                    
-                    {/* Admin Quick Actions */}
-                    {isAdminUser && (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href="/admin/dashboard">
-                          <Shield className="h-4 w-4 mr-2" />
-                          Admin
-                        </Link>
-                      </Button>
-                    )}
+              {/* Authenticated State */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.picture} alt={user.name || user.email} />
+                      <AvatarFallback>
+                        {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.name || 'User'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
-
-                  {/* User Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="relative h-8 w-8 rounded-full"
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={user.picture || ''}
-                            alt={user.name || 'User avatar'}
-                          />
-                          <AvatarFallback>
-                            {user.name?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <div className="flex items-center justify-start gap-2 p-2">
-                        <div className="flex flex-col space-y-1 leading-none">
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard">
-                          <BarChart3 className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile">
-                          <User className="mr-2 h-4 w-4" />
-                          Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/settings">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Settings
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/billing">
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Billing
-                        </Link>
-                      </DropdownMenuItem>
-                      
-                      {/* Admin Section */}
-                      {isAdminUser && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/dashboard">
-                              <Shield className="mr-2 h-4 w-4" />
-                              Admin Dashboard
-                            </Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <a href="/api/auth/logout">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Log out
-                        </a>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ) : (
-                // Unauthenticated State
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" asChild>
-                    <a href="/api/auth/login">Sign In</a>
-                  </Button>
-                  <Button asChild>
-                    <a href="/api/auth/signup">Get Started</a>
-                  </Button>
-                </div>
-              )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/billing">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Billing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => logout()}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              {/* Unauthenticated State */}
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => login()}
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => login({ screen_hint: 'signup' })}
+                >
+                  Get Started
+                </Button>
+              </div>
             </>
           )}
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border">
-          <nav className="container py-4 space-y-2">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
-            {user && (
-              <>
-                <div className="border-t border-border pt-2 mt-2">
-                  <Link
-                    href="/dashboard"
-                    className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  {/* Admin Links for Mobile */}
-                  {isAdminUser && (
-                    <Link
-                      href="/admin/dashboard"
-                      className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Admin Dashboard
-                    </Link>
-                  )}
-                </div>
-              </>
-            )}
-          </nav>
-        </div>
-      )}
     </header>
   )
-} 
+}
+
+// Export both named and default for compatibility
+export { Header }
+export default Header 
