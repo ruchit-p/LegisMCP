@@ -180,4 +180,7 @@ dev.log
 .worker-next/
 .dev.vars.local
 wrangler-session.json
-.dev.vars 
+.dev.vars
+
+# OpenNext build artifacts
+.open-next/ 

@@ -14,17 +14,19 @@ LegisMCP is a comprehensive legislative data platform that provides real-time ac
 
 ### Frontend (Next.js)
 ```bash
-cd "LegisMCP Frontend"
+cd LegisMCP_Frontend
 npm install
 npm run dev          # Start on http://localhost:3000
 npm run build        # Build for production
 npm run lint         # Run ESLint
 npm run type-check   # TypeScript checking
+npm run cf:build     # Build for Cloudflare deployment
+npm run cf:deploy    # Deploy to Cloudflare Pages
 ```
 
 ### MCP Server
 ```bash
-cd "LegisMCP Server"
+cd LegisMCP_Server
 npm install
 npm run dev          # Start on port 8788
 npm run deploy       # Deploy to Cloudflare Workers
@@ -127,10 +129,10 @@ The MCP Server provides these tools for AI agents:
    cd LegisAPI && npm run dev
    
    # Terminal 2 - MCP Server
-   cd "LegisMCP Server" && npm run dev
+   cd LegisMCP_Server && npm run dev
    
    # Terminal 3 - Frontend
-   cd "LegisMCP Frontend" && npm run dev
+   cd LegisMCP_Frontend && npm run dev
    ```
 
 2. Test MCP Server with MCP Inspector:
@@ -147,8 +149,8 @@ The MCP Server provides these tools for AI agents:
 ## Common Development Tasks
 
 ### Adding New MCP Tools
-1. Create tool implementation in `LegisMCP Server/src/tools/`
-2. Register tool in `LegisMCP Server/src/tools/index.ts`
+1. Create tool implementation in `LegisMCP_Server/src/tools/`
+2. Register tool in `LegisMCP_Server/src/tools/index.ts`
 3. Update frontend `mcp-tools.tsx` to expose new tool in UI
 
 ### Modifying API Endpoints
@@ -159,7 +161,7 @@ The MCP Server provides these tools for AI agents:
 
 ### Updating Frontend Components
 1. Components use Radix UI primitives - check existing patterns
-2. Follow component structure in `LegisMCP Frontend/src/components/`
+2. Follow component structure in `LegisMCP_Frontend/src/components/`
 3. Use Tailwind CSS for styling
 4. Import components using `@/` alias
 
