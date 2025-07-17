@@ -1,0 +1,38 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "legis-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-04-01",
+	"observability": {
+		"enabled": true
+	},
+	"dev": {
+		"port": 8789
+	},
+	"limits": {
+		"cpu_ms": 300000
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "legis-db",
+			"database_id": "80f8112f-38fb-4220-86e6-17c611504f78"
+		}
+	],
+	"analytics_engine_datasets": [
+		{
+			"binding": "ANALYTICS",
+			"dataset": "legis_analytics"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "CONGRESS_KEYS",
+			"id": "569f409f4e204cc09968956060c2fc24"
+		}
+	]
+}

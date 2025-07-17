@@ -1,0 +1,170 @@
+// MARK: - Stripe Configuration
+// Centralized Stripe plan configuration with type safety
+
+export interface StripePlan {
+  name: string;
+  id: string;
+  monthly: {
+    priceId: string;
+    amount: number;
+  };
+  yearly: {
+    priceId: string;
+    amount: number;
+  };
+  isEnterprise?: boolean;
+  isFree?: boolean;
+}
+
+export interface StripeConfig {
+  plans: Record<string, StripePlan>;
+  webhookEvents: string[];
+}
+
+// MARK: - Plan Configuration
+export const STRIPE_CONFIG: StripeConfig = {
+  plans: {
+    free: {
+      name: 'Free',
+      id: 'free',
+      isFree: true,
+      monthly: {
+        priceId: process.env.STRIPE_FREE_PRICE_ID || 'price_free',
+        amount: 0
+      },
+      yearly: {
+        priceId: process.env.STRIPE_FREE_PRICE_ID || 'price_free',
+        amount: 0
+      }
+    },
+    starter: {
+      name: 'Developer',
+      id: 'starter',
+      monthly: {
+        priceId: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID!,
+        amount: 999 // $9.99
+      },
+      yearly: {
+        priceId: process.env.STRIPE_STARTER_YEARLY_PRICE_ID!,
+        amount: 9999 // $99.99
+      }
+    },
+    professional: {
+      name: 'Professional',
+      id: 'professional',
+      monthly: {
+        priceId: process.env.STRIPE_PROFESSIONAL_MONTHLY_PRICE_ID!,
+        amount: 2999 // $29.99
+      },
+      yearly: {
+        priceId: process.env.STRIPE_PROFESSIONAL_YEARLY_PRICE_ID!,
+        amount: 29999 // $299.99
+      }
+    },
+    enterprise: {
+      name: 'Enterprise',
+      id: 'enterprise',
+      isEnterprise: true,
+      monthly: {
+        priceId: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || 'price_enterprise',
+        amount: 0 // Contact sales
+      },
+      yearly: {
+        priceId: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID || 'price_enterprise',
+        amount: 0 // Contact sales
+      }
+    }
+  },
+  webhookEvents: [
+    'checkout.session.completed',
+    'customer.subscription.created',
+    'customer.subscription.updated',
+    'customer.subscription.deleted',
+    'invoice.payment_succeeded',
+    'invoice.payment_failed'
+  ]
+};
+
+// MARK: - Helper Functions
+
+/**
+ * Validate if a plan ID exists in configuration
+ */
+export function isValidPlan(planId: string): boolean {
+  return planId in STRIPE_CONFIG.plans;
+}
+
+/**
+ * Get plan configuration by ID
+ */
+export function getPlan(planId: string): StripePlan | null {
+  return STRIPE_CONFIG.plans[planId] || null;
+}
+
+/**
+ * Get price ID for a specific plan and billing frequency
+ */
+export function getPriceId(planId: string, billingFrequency: 'monthly' | 'yearly'): string | null {
+  const plan = getPlan(planId);
+  if (!plan) return null;
+  
+  return plan[billingFrequency].priceId;
+}
+
+/**
+ * Validate billing frequency
+ */
+export function isValidBillingFrequency(frequency: string): frequency is 'monthly' | 'yearly' {
+  return frequency === 'monthly' || frequency === 'yearly';
+}
+
+/**
+ * Validate Stripe environment variables
+ */
+export function validateStripeConfig(): {
+  isValid: boolean;
+  missingVars: string[];
+} {
+  const requiredVars = [
+    'STRIPE_SECRET_KEY',
+    'STRIPE_WEBHOOK_SECRET',
+    'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    'STRIPE_STARTER_MONTHLY_PRICE_ID',
+    'STRIPE_STARTER_YEARLY_PRICE_ID',
+    'STRIPE_PROFESSIONAL_MONTHLY_PRICE_ID',
+    'STRIPE_PROFESSIONAL_YEARLY_PRICE_ID'
+  ];
+
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  return {
+    isValid: missingVars.length === 0,
+    missingVars
+  };
+}
+
+/**
+ * Format price for display
+ */
+export function formatPrice(amount: number, currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount / 100);
+}
+
+/**
+ * Calculate yearly savings
+ */
+export function calculateYearlySavings(monthlyPrice: number, yearlyPrice: number): {
+  amount: number;
+  percentage: number;
+} {
+  const monthlyTotal = monthlyPrice * 12;
+  const savings = monthlyTotal - yearlyPrice;
+  const percentage = Math.round((savings / monthlyTotal) * 100);
+  
+  return { amount: savings, percentage };
+} 

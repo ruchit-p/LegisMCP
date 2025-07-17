@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@auth0/nextjs-auth0';
+
+// MARK: - Individual API Key Routes
+
+/**
+ * DELETE /api/keys/[keyId] - Deactivate API key
+ */
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { keyId: string } }
+) {
+    try {
+        // Get user session
+        const session = await getSession();
+        if (!session || !session.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const keyId = params.keyId;
+
+        // Validate keyId
+        if (!keyId || typeof keyId !== 'string') {
+            return NextResponse.json(
+                { error: 'Invalid key ID' },
+                { status: 400 }
+            );
+        }
+
+        // Forward request to Cloudflare Worker
+        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+        const workerResponse = await fetch(`${workerUrl}/keys/${keyId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${session.accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!workerResponse.ok) {
+            const errorData = await workerResponse.json().catch(() => ({ error: 'Worker request failed' }));
+            return NextResponse.json(errorData, { status: workerResponse.status });
+        }
+
+        const data = await workerResponse.json();
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error('Failed to deactivate API key:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+} 

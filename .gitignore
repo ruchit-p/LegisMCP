@@ -1,0 +1,200 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+.dev.vars
+*.local
+
+# IDE and Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Next.js cache
+.next/
+.swc/
+
+# Production
+/build
+
+# Misc
+*.log
+*.cache
+.eslintcache
+.cache/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output
+*.lcov
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+worker-configuration.d.ts
+
+# Auth0
+auth0-secrets.json
+
+# Stripe
+stripe-secrets.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.data/
+
+# Logs
+logs/
+*.log
+dev.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Lock files (optional - some teams prefer to commit these)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Build artifacts
+*.pid
+*.seed
+*.pid.lock
+
+# Vercel
+.vercel
+
+# Turbo
+.turbo
+
+# macOS metadata
+.AppleDouble
+.LSOverride
+
+# Windows metadata
+$RECYCLE.BIN/
+
+# Linux metadata
+.directory
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Analytics
+analytics/
+.analytics/
+
+# Sentry
+.sentryclirc
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/fallback-*.js
+**/public/precache.*.*.js
+**/public/precache-manifest.*.js
+
+# Storybook
+storybook-static/
+*.story.js.snap
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Misc development files
+.grunt
+.cache
+.parcel-cache
+.sass-cache
+.nuxt
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.env.vault
+.yarn-integrity
+
+# Python (if any Python scripts are used)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ruby (if any Ruby scripts are used)
+*.gem
+*.rbc
+.bundle
+.config
+InstalledFiles
+lib/bundler/man/
+
+# KV namespace local storage
+.mf/

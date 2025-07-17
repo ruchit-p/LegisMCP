@@ -1,0 +1,50 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "legis-mcp",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-04-01",
+	"compatibility_flags": ["nodejs_compat"],
+	"migrations": [
+		{
+			"new_sqlite_classes": ["AuthenticatedMCP"],
+			"tag": "v1"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "AuthenticatedMCP",
+				"name": "MCP_OBJECT"
+			}
+		]
+	},
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV",
+			"id": "f71e0ba711544eb3a1e509b580ba70ad"
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"dev": {
+		"port": 8788
+	},
+	"limits": {
+		"cpu_ms": 300000
+	},
+	"vars": {
+		"AUTH0_DOMAIN": "your-tenant.us.auth0.com",
+		"AUTH0_CLIENT_ID": "YOUR_AUTH0_CLIENT_ID",
+		"AUTH0_AUDIENCE": "urn:legis-api",
+		"AUTH0_SCOPE": "openid email profile offline_access read:bills read:members read:votes read:committees",
+		"API_BASE_URL": "https://legis-api.ruchit.workers.dev"
+	}
+}
