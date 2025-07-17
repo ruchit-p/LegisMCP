@@ -37,10 +37,12 @@ app.route('/api/webhooks', webhookRoutes);
 app.route('/api/config', configRoutes);
 
 // Apply JWT auth to all other routes
-app.use("/api/*", jwt({
-	auth0_domain: 'your-tenant.us.auth0.com',
-	auth0_audience: 'urn:legis-api'
-}));
+app.use("/api/*", async (c, next) => {
+	return jwt({
+		auth0_domain: c.env.AUTH0_DOMAIN,
+		auth0_audience: c.env.AUTH0_AUDIENCE
+	})(c, next);
+});
 
 app.post("/api/users/register", async (c) => {
 	const claims = c.var.jwtPayload as JWTPayload;

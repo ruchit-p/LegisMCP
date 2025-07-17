@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSession } from '@auth0/nextjs-auth0';
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -6,7 +6,7 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 /**
  * POST /api/billing/portal - Create Stripe Customer Portal Session
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     if (!STRIPE_SECRET_KEY) {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's Stripe customer ID from the Cloudflare Worker
-    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
     const userResponse = await fetch(`${workerUrl}/user/profile`, {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,

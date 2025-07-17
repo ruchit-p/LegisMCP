@@ -157,7 +157,7 @@ export function MCPUsageDisplay() {
               {usagePercentage >= 90 && (
                 <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
-                  You're approaching your usage limit. Consider upgrading your plan.
+                  You&apos;re approaching your usage limit. Consider upgrading your plan.
                 </p>
               )}
             </div>

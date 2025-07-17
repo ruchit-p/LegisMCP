@@ -6,7 +6,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 /**
  * GET /api/keys - List user's API keys (proxy to Cloudflare Worker)
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         // Get user session
         const session = await getSession();
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         const { accessToken } = session;
         
         // Proxy request to Cloudflare Worker
-        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL + '/user/keys';
+        const workerUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com') + '/user/keys';
         const response = await fetch(workerUrl, {
             method: 'GET',
             headers: {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         // Proxy request to Cloudflare Worker
-        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL + '/user/keys';
+        const workerUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com') + '/user/keys';
         const response = await fetch(workerUrl, {
             method: 'POST',
             headers: {

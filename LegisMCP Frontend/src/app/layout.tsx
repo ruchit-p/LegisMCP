@@ -24,20 +24,11 @@ export const metadata: Metadata = {
     siteName: 'LegislativeMCP',
     locale: 'en_US',
     type: 'website',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'LegislativeMCP - Legislative MCP Server Platform',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LegislativeMCP - Legislative MCP Server Platform',
     description: 'Enterprise-grade MCP server for Legislative data access, AI integration, and Legislative intelligence.',
-    images: ['/twitter-image.png'],
   },
 }
 

@@ -43,7 +43,7 @@ export function TestimonialsSection() {
             <div key={index} className="flex flex-col bg-background rounded-2xl p-8 shadow-sm ring-1 ring-border hover:shadow-md transition-shadow">
               <blockquote className="flex-1">
                 <p className="text-lg leading-7 text-foreground">
-                  "{testimonial.content}"
+                  &quot;{testimonial.content}&quot;
                 </p>
               </blockquote>
               <div className="mt-6 flex items-center gap-x-4">

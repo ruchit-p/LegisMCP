@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -62,15 +62,10 @@ export function UsageTracker() {
   const [selectedPeriod, setSelectedPeriod] = useState('30');
   const { toast } = useToast();
 
-  // Load usage data on component mount and when period changes
-  useEffect(() => {
-    loadUsageData();
-  }, [selectedPeriod]);
-
   /**
    * Loads usage data from the backend.
    */
-  const loadUsageData = async () => {
+  const loadUsageData = useCallback(async () => {
     try {
       const response = await fetch(`/api/usage?days=${selectedPeriod}`);
       if (!response.ok) {
@@ -89,7 +84,12 @@ export function UsageTracker() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [selectedPeriod, toast]);
+
+  // Load usage data on component mount and when period changes
+  useEffect(() => {
+    loadUsageData();
+  }, [loadUsageData]);
 
   /**
    * Refreshes usage data.
@@ -117,14 +117,7 @@ export function UsageTracker() {
     return num.toLocaleString();
   };
 
-  /**
-   * Gets usage status color based on percentage.
-   */
-  const getUsageStatusColor = (percentage: number): string => {
-    if (percentage >= 90) return 'text-red-600';
-    if (percentage >= 75) return 'text-yellow-600';
-    return 'text-green-600';
-  };
+
 
   /**
    * Gets usage status icon based on percentage.
@@ -252,7 +245,7 @@ export function UsageTracker() {
                     High usage detected
                   </p>
                   <p className="text-red-700 dark:text-red-300">
-                    You're approaching your monthly limit. Consider upgrading your plan.
+                    You&apos;re approaching your monthly limit. Consider upgrading your plan.
                   </p>
                 </div>
               </div>

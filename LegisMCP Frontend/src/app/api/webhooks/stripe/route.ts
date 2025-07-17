@@ -1,6 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import crypto from 'crypto';
+
+// MARK: - Types
+interface StripeMetadata {
+  auth0_user_id?: string;
+  plan_id?: string;
+  billing_frequency?: string;
+}
+
+interface StripeCheckoutSession {
+  id: string;
+  customer: string;
+  subscription?: string;
+  metadata: StripeMetadata;
+}
+
+interface StripeSubscription {
+  id: string;
+  status: string;
+  customer: string;
+  current_period_start: number;
+  current_period_end: number;
+  cancel_at_period_end: boolean;
+  items: {
+    data: Array<{
+      price: {
+        unit_amount: number;
+        currency: string;
+      };
+    }>;
+  };
+  metadata: StripeMetadata;
+}
+
+interface StripeInvoice {
+  id: string;
+  customer: string;
+  subscription?: string;
+}
+
+interface SubscriptionUpdateData {
+  stripe_customer_id?: string;
+  subscription_id?: string | null;
+  status?: string;
+  plan?: string | null;
+  billing_frequency?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
+  amount?: number;
+  currency?: string;
+}
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
@@ -24,7 +74,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
     }
 
-    // Verify webhook signature using crypto
+    // Verify webhook signature using Web Crypto API (Cloudflare Workers compatible)
     let event;
     try {
       // Extract timestamp and signatures from header
@@ -36,12 +86,21 @@ export async function POST(request: NextRequest) {
         throw new Error('Invalid signature format');
       }
 
-      // Create expected signature
+      // Create expected signature using Web Crypto API
       const payload = timestamp + '.' + body;
-      const expectedSignature = crypto
-        .createHmac('sha256', STRIPE_WEBHOOK_SECRET)
-        .update(payload, 'utf8')
-        .digest('hex');
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(STRIPE_WEBHOOK_SECRET),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+
+      const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+      const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
       // Compare signatures
       if (expectedSignature !== v1Signature) {
@@ -101,7 +160,7 @@ export async function POST(request: NextRequest) {
 /**
  * Handle successful checkout session
  */
-async function handleCheckoutSessionCompleted(session: any) {
+async function handleCheckoutSessionCompleted(session: StripeCheckoutSession) {
   try {
     const auth0UserId = session.metadata?.auth0_user_id;
     const planId = session.metadata?.plan_id;
@@ -147,7 +206,7 @@ async function handleCheckoutSessionCompleted(session: any) {
 /**
  * Handle subscription changes
  */
-async function handleSubscriptionChange(subscription: any) {
+async function handleSubscriptionChange(subscription: StripeSubscription) {
   try {
     const auth0UserId = subscription.metadata?.auth0_user_id;
     
@@ -175,7 +234,7 @@ async function handleSubscriptionChange(subscription: any) {
 /**
  * Handle subscription deletion
  */
-async function handleSubscriptionDeleted(subscription: any) {
+async function handleSubscriptionDeleted(subscription: StripeSubscription) {
   try {
     const auth0UserId = subscription.metadata?.auth0_user_id;
     
@@ -203,7 +262,7 @@ async function handleSubscriptionDeleted(subscription: any) {
 /**
  * Handle successful payment
  */
-async function handlePaymentSucceeded(invoice: any) {
+async function handlePaymentSucceeded(invoice: StripeInvoice) {
   try {
     console.log('Payment succeeded for invoice:', invoice.id);
     // Additional logic for successful payments if needed
@@ -215,7 +274,7 @@ async function handlePaymentSucceeded(invoice: any) {
 /**
  * Handle failed payment
  */
-async function handlePaymentFailed(invoice: any) {
+async function handlePaymentFailed(invoice: StripeInvoice) {
   try {
     console.log('Payment failed for invoice:', invoice.id);
     // Additional logic for failed payments (notifications, retries, etc.)
@@ -227,9 +286,9 @@ async function handlePaymentFailed(invoice: any) {
 /**
  * Update user subscription in backend
  */
-async function updateUserSubscription(auth0UserId: string, subscriptionData: any) {
+async function updateUserSubscription(auth0UserId: string, subscriptionData: SubscriptionUpdateData) {
   try {
-    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+          const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
     
     // Get M2M token for Auth0 Management API
     const tokenResponse = await fetch(`${process.env.AUTH0_ISSUER_BASE_URL}/oauth/token`, {

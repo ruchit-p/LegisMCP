@@ -1,14 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSession } from '@auth0/nextjs-auth0/edge';
 import Stripe from 'stripe';
+
+// MARK: - Types
+interface StripeSubscriptionResponse {
+  id: string;
+  cancel_at_period_end: boolean;
+  current_period_end?: number;
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
 });
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const session = await getSession(request as any, new NextResponse());
+    const session = await getSession();
     
     if (!session?.user) {
       return NextResponse.json(
@@ -55,7 +62,7 @@ export async function POST(request: NextRequest) {
       subscription: {
         id: updatedSubscription.id,
         cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end,
-        currentPeriodEnd: (updatedSubscription as any).current_period_end ? new Date((updatedSubscription as any).current_period_end * 1000).toISOString() : null,
+        currentPeriodEnd: (updatedSubscription as StripeSubscriptionResponse).current_period_end ? new Date((updatedSubscription as StripeSubscriptionResponse).current_period_end * 1000).toISOString() : null,
       },
     });
   } catch (error) {

@@ -173,4 +173,11 @@ temp/
 
 # Local development
 dev.log
-*.local 
+*.local
+
+# Cloudflare Workers
+.wrangler/
+.worker-next/
+.dev.vars.local
+wrangler-session.json
+.dev.vars 

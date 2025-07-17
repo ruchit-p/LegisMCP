@@ -1,4 +1,4 @@
-import { Search, BarChart3, Users, Clock, Shield, Zap, Code, Database, Brain, Plug, GitBranch, Globe } from 'lucide-react'
+import { Shield, Code, Database, Brain, Plug, Globe } from 'lucide-react'
 
 const categories = {
   integration: { name: 'Integration', color: 'text-blue-600' },

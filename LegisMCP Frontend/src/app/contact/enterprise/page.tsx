@@ -17,7 +17,7 @@ export default function EnterpriseContactPage() {
             Enterprise Solutions
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
-            Let's Build Something Great Together
+            Let&apos;s Build Something Great Together
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Our enterprise plan offers unlimited access, custom integrations, and dedicated support 

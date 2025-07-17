@@ -28,7 +28,7 @@ export async function DELETE(
         }
 
         // Forward request to Cloudflare Worker
-        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com';
         const workerResponse = await fetch(`${workerUrl}/keys/${keyId}`, {
             method: 'DELETE',
             headers: {

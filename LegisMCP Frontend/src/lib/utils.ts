@@ -38,7 +38,7 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -87,7 +87,7 @@ export function parseJWT(token: string) {
         .join('')
     )
     return JSON.parse(jsonPayload)
-  } catch (error) {
+  } catch {
     return null
   }
 } 

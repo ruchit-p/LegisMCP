@@ -11,6 +11,16 @@ const nextConfig = {
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     NEXT_PUBLIC_MCP_SERVER_URL: process.env.NEXT_PUBLIC_MCP_SERVER_URL,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

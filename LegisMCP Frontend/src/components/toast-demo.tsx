@@ -82,38 +82,4 @@ export function ToastDemo() {
   )
 }
 
-// Utility functions for easier usage throughout the app
-export const showToast = {
-  success: (title: string, description?: string) => {
-    const { toast } = useToast()
-    return toast({
-      title,
-      description,
-      variant: "success",
-    })
-  },
-  error: (title: string, description?: string) => {
-    const { toast } = useToast()
-    return toast({
-      title,
-      description,
-      variant: "destructive",
-    })
-  },
-  warning: (title: string, description?: string) => {
-    const { toast } = useToast()
-    return toast({
-      title,
-      description,
-      variant: "warning",
-    })
-  },
-  info: (title: string, description?: string) => {
-    const { toast } = useToast()
-    return toast({
-      title,
-      description,
-      variant: "default",
-    })
-  },
-} 
+ 

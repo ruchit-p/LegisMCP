@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import { getMCPUsageLogger } from './mcp-usage-logger';
 
 // MARK: - Types and Interfaces
@@ -37,7 +38,7 @@ export interface McpServerInfo {
 export interface McpTool {
     name: string;
     description?: string;
-    inputSchema: any;
+    inputSchema: Record<string, unknown>;
 }
 
 export interface McpResource {
@@ -50,14 +51,14 @@ export interface McpResource {
 export interface McpPrompt {
     name: string;
     description?: string;
-    arguments?: any[];
+    arguments?: Record<string, unknown>[];
 }
 
-export interface McpToolResult {
+export interface McpToolResult extends Record<string, unknown> {
     content: Array<{
         type: string;
         text?: string;
-        data?: any;
+        data?: unknown;
     }>;
     isError?: boolean;
 }
@@ -80,6 +81,45 @@ export interface McpPromptResult {
     }>;
 }
 
+// MARK: - JSON-RPC Types
+
+interface JsonRpcRequest extends Record<string, unknown> {
+    jsonrpc: '2.0';
+    method: string;
+    params?: Record<string, unknown>;
+    id?: string | number;
+}
+
+interface JsonRpcResponse<T = unknown> {
+    jsonrpc: '2.0';
+    result?: T;
+    error?: {
+        code: number;
+        message: string;
+        data?: unknown;
+    };
+    id?: string | number;
+}
+
+interface InitializeResult {
+    sessionId: string;
+    subscriptionTier: string;
+    usageLimit: number;
+    monthlyUsage: number;
+}
+
+interface ListToolsResult {
+    tools: McpTool[];
+}
+
+interface ListResourcesResult {
+    resources: McpResource[];
+}
+
+interface ListPromptsResult {
+    prompts: McpPrompt[];
+}
+
 // MARK: - MCP Client Class
 
 export class McpClient extends EventEmitter {
@@ -90,8 +130,8 @@ export class McpClient extends EventEmitter {
     private retryTimer?: NodeJS.Timeout;
     private requestCounter = 0;
     private pendingRequests = new Map<string | number, {
-        resolve: (value: any) => void;
-        reject: (error: any) => void;
+        resolve: (value: unknown) => void;
+        reject: (error: unknown) => void;
         timeout: NodeJS.Timeout;
     }>();
     private usageLogger = getMCPUsageLogger();
@@ -157,7 +197,7 @@ export class McpClient extends EventEmitter {
             }
             
             // Reject all pending requests
-            for (const [id, request] of this.pendingRequests) {
+            for (const [, request] of this.pendingRequests) {
                 clearTimeout(request.timeout);
                 request.reject(new Error('Connection closed'));
             }
@@ -173,7 +213,7 @@ export class McpClient extends EventEmitter {
                             'Content-Type': 'application/json'
                         }
                     });
-                } catch (error) {
+                } catch {
                     // Ignore errors during session cleanup
                 }
             }
@@ -209,13 +249,13 @@ export class McpClient extends EventEmitter {
             }
         };
 
-        const response = await this.sendHttpRequest(initializeRequest);
+        const response = await this.sendHttpRequest<InitializeResult>(initializeRequest);
         
         if (response.error) {
             throw new Error(`Initialize failed: ${response.error.message}`);
         }
         
-        const result = response.result;
+        const result = response.result!;
         this.state.sessionId = result.sessionId;
         this.state.subscriptionTier = result.subscriptionTier;
         this.state.usageLimit = result.usageLimit;
@@ -236,10 +276,10 @@ export class McpClient extends EventEmitter {
                 headers['Mcp-Session-Id'] = this.state.sessionId;
             }
             
-            // Create EventSource with headers (requires polyfill for custom headers)
-            this.eventSource = new EventSource(this.options.serverUrl, {
+            // Create EventSource with headers using polyfill for Cloudflare Workers compatibility
+            this.eventSource = new EventSourcePolyfill(this.options.serverUrl, {
                 headers
-            } as any);
+            }) as EventSource;
             
             this.eventSource.onopen = () => {
                 resolve();
@@ -313,7 +353,7 @@ export class McpClient extends EventEmitter {
 
     // MARK: - Request/Response Handling
 
-    private async sendHttpRequest(request: any): Promise<any> {
+    private async sendHttpRequest<T = unknown>(request: Record<string, unknown>): Promise<JsonRpcResponse<T>> {
         const response = await fetch(this.options.serverUrl, {
             method: 'POST',
             headers: {
@@ -337,7 +377,7 @@ export class McpClient extends EventEmitter {
         return await response.json();
     }
 
-    private async sendRequest(request: any): Promise<any> {
+    private async sendRequest<T = unknown>(request: JsonRpcRequest): Promise<JsonRpcResponse<T>> {
         if (!this.state.connected) {
             throw new Error('Not connected to MCP server');
         }
@@ -375,6 +415,7 @@ export class McpClient extends EventEmitter {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON-RPC response data is dynamic
     private handleResponse(data: any): void {
         const id = data.id;
         if (this.pendingRequests.has(id)) {
@@ -390,6 +431,7 @@ export class McpClient extends EventEmitter {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON-RPC notification data is dynamic
     private handleNotification(data: any): void {
         this.emit('notification', data);
     }
@@ -401,20 +443,20 @@ export class McpClient extends EventEmitter {
     // MARK: - MCP Protocol Methods
 
     public async listTools(): Promise<McpTool[]> {
-        const result = await this.sendRequest({
+        const response = await this.sendRequest<ListToolsResult>({
             jsonrpc: '2.0',
             id: this.getNextRequestId(),
             method: 'tools/list'
         });
         
-        return result.tools || [];
+        return response.result?.tools || [];
     }
 
-    public async callTool(name: string, args: any = {}): Promise<McpToolResult> {
+    public async callTool(name: string, args: Record<string, unknown> = {}): Promise<McpToolResult> {
         const startTime = Date.now();
         
         try {
-            const result = await this.sendRequest({
+            const response = await this.sendRequest<McpToolResult>({
                 jsonrpc: '2.0',
                 id: this.getNextRequestId(),
                 method: 'tools/call',
@@ -424,6 +466,7 @@ export class McpClient extends EventEmitter {
                 }
             });
             
+            const result = response.result!;
             const responseTime = Date.now() - startTime;
             
             // Log successful tool call
@@ -451,17 +494,17 @@ export class McpClient extends EventEmitter {
     }
 
     public async listResources(): Promise<McpResource[]> {
-        const result = await this.sendRequest({
+        const response = await this.sendRequest<ListResourcesResult>({
             jsonrpc: '2.0',
             id: this.getNextRequestId(),
             method: 'resources/list'
         });
         
-        return result.resources || [];
+        return response.result?.resources || [];
     }
 
     public async readResource(uri: string): Promise<McpResourceContent> {
-        const result = await this.sendRequest({
+        const response = await this.sendRequest<McpResourceContent>({
             jsonrpc: '2.0',
             id: this.getNextRequestId(),
             method: 'resources/read',
@@ -470,21 +513,21 @@ export class McpClient extends EventEmitter {
             }
         });
         
-        return result;
+        return response.result!;
     }
 
     public async listPrompts(): Promise<McpPrompt[]> {
-        const result = await this.sendRequest({
+        const response = await this.sendRequest<ListPromptsResult>({
             jsonrpc: '2.0',
             id: this.getNextRequestId(),
             method: 'prompts/list'
         });
         
-        return result.prompts || [];
+        return response.result?.prompts || [];
     }
 
-    public async getPrompt(name: string, args: any = {}): Promise<McpPromptResult> {
-        const result = await this.sendRequest({
+    public async getPrompt(name: string, args: Record<string, unknown> = {}): Promise<McpPromptResult> {
+        const response = await this.sendRequest<McpPromptResult>({
             jsonrpc: '2.0',
             id: this.getNextRequestId(),
             method: 'prompts/get',
@@ -494,7 +537,7 @@ export class McpClient extends EventEmitter {
             }
         });
         
-        return result;
+        return response.result!;
     }
 
     // MARK: - Public Getters

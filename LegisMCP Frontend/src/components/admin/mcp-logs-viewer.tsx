@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Search, 
   RefreshCw,
-  FileText,
-  Clock,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -31,8 +29,8 @@ interface MCPLog {
   response_time_ms: number;
   tokens_used?: number;
   timestamp: string;
-  request_data?: any;
-  response_data?: any;
+  request_data?: Record<string, unknown>;
+  response_data?: Record<string, unknown>;
 }
 
 export function MCPLogsViewer() {
@@ -44,11 +42,7 @@ export function MCPLogsViewer() {
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
   const [availableTools, setAvailableTools] = useState<string[]>([]);
 
-  useEffect(() => {
-    loadLogs();
-  }, [searchQuery, filterTool, filterStatus]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({
@@ -68,7 +62,11 @@ export function MCPLogsViewer() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, filterTool, filterStatus]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

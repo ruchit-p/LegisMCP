@@ -1,6 +1,11 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+
+// MARK: - Types
+interface ApiKey {
+  isActive: boolean;
+}
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
@@ -59,7 +64,7 @@ export default function DashboardPage() {
         const usageData = await usageResponse.json();
 
         setDashboardData({
-          activeKeys: keysData.keys?.filter((k: any) => k.isActive).length || 0,
+          activeKeys: keysData.keys?.filter((k: ApiKey) => k.isActive).length || 0,
           monthlyRequests: usageData.usage?.current || 0,
           avgResponseTime: Math.round(usageData.stats?.avgResponseTime || 0),
           planName: usageData.usage?.planName || 'Free'

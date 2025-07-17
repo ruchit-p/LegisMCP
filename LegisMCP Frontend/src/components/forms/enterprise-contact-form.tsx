@@ -65,7 +65,7 @@ export function EnterpriseContactForm() {
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
         <p className="text-muted-foreground mb-4">
-          We've received your inquiry and will contact you within 24 hours.
+          We&apos;ve received your inquiry and will contact you within 24 hours.
         </p>
         <p className="text-sm text-muted-foreground">
           Redirecting to dashboard...

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -18,12 +19,10 @@ import {
   CreditCard, 
   LogOut, 
   BarChart3,
-  Search,
-  Book,
   Menu
 } from 'lucide-react'
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
+
 
 const navigation = [
   { name: 'Features', href: '#features' },
@@ -39,9 +38,13 @@ export function Header() {
       <div className="container flex h-16 items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Book className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <Image 
+            src="https://pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev/Legi%20USA%20Logo%20Black%20Transparent.png"
+            alt="LegislativeMCP"
+            width={32}
+            height={32}
+            className="h-8 w-auto"
+          />
           <span className="font-bold text-xl">LegislativeMCP</span>
         </Link>
 
@@ -71,12 +74,6 @@ export function Header() {
                       <Link href="/dashboard">
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Dashboard
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href="/search">
-                        <Search className="h-4 w-4 mr-2" />
-                        Search
                       </Link>
                     </Button>
                   </div>
@@ -113,12 +110,6 @@ export function Header() {
                         <Link href="/dashboard">
                           <BarChart3 className="mr-2 h-4 w-4" />
                           Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/search">
-                          <Search className="mr-2 h-4 w-4" />
-                          Search & Query
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
@@ -198,13 +189,6 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
-                  </Link>
-                  <Link
-                    href="/search"
-                    className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Search
                   </Link>
                 </div>
               </>

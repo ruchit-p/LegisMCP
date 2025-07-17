@@ -12,9 +12,9 @@ import { handleAuth, handleLogin } from '@auth0/nextjs-auth0';
  * - GET /api/auth/signup - Redirects to Auth0 signup page
  */
 export const GET = handleAuth({
-  login: handleLogin((req: any) => {
-    // Get the base URL
-    const baseURL = process.env.AUTH0_BASE_URL || `https://${req.headers.get('host')}`;
+  login: handleLogin((req) => {
+    // Get the base URL - use environment variable for production
+    const baseURL = process.env.AUTH0_BASE_URL || 'http://localhost:3000';
     const url = new URL(req.url, baseURL);
     const screenHint = url.searchParams.get('screen_hint');
     const connection = url.searchParams.get('connection');
@@ -30,8 +30,8 @@ export const GET = handleAuth({
       returnTo: returnTo
     };
   }),
-  signup: handleLogin((req: any) => {
-    const baseURL = process.env.AUTH0_BASE_URL || `https://${req.headers.get('host')}`;
+  signup: handleLogin((req) => {
+    const baseURL = process.env.AUTH0_BASE_URL || 'http://localhost:3000';
     const url = new URL(req.url, baseURL);
     const returnTo = url.searchParams.get('returnTo') || '/dashboard';
     const connection = url.searchParams.get('connection') || 'Username-Password-Authentication';

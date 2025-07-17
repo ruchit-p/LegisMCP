@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Search, BarChart3, Zap, Code, Database, Brain } from 'lucide-react'
+import { ArrowRight, Zap, Code, Database, Brain } from 'lucide-react'
 import Link from 'next/link'
 
 export function HeroSection() {
@@ -106,10 +106,10 @@ export function HeroSection() {
                     <span className="text-blue-400">mcp_server:</span>
                   </div>
                   <div className="ml-4 text-green-400">
-                    <span className="text-blue-400">url:</span> <span className="text-yellow-400">"https://api.example.com/mcp"</span>
+                    <span className="text-blue-400">url:</span> <span className="text-yellow-400">&quot;https://api.example.com/mcp&quot;</span>
                   </div>
                   <div className="ml-4 text-green-400">
-                    <span className="text-blue-400">tools:</span> <span className="text-yellow-400">["search", "analysis", "member_info"]</span>
+                    <span className="text-blue-400">tools:</span> <span className="text-yellow-400">[&quot;search&quot;, &quot;analysis&quot;, &quot;member_info&quot;]</span>
                   </div>
                   <div className="mt-4 text-slate-400"># Your AI can now access Legislative data</div>
                 </div>

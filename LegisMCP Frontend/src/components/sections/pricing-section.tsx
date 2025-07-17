@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { Check, Loader2, Star, Zap, Shield, Building, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
-import { formatPrice, calculateYearlySavings } from '@/lib/stripe-config';
+import { formatPrice } from '@/lib/stripe-config';
 
 const tiers = [
   {
@@ -30,10 +30,10 @@ const tiers = [
     isFree: true,
   },
   {
-    name: 'Developer',
+    name: 'Starter',
     id: 'starter',
     price: { monthly: 9.99, yearly: 7.99 },
-    description: 'Perfect for individual developers and small projects.',
+    description: 'Perfect for getting real-time legislative data and building applications.',
     features: [
       '1,000 MCP calls per month',
       'Standard rate limiting',
@@ -95,7 +95,7 @@ const tiers = [
 export function PricingSection() {
   const [billingFrequency, setBillingFrequency] = useState<'monthly' | 'yearly'>('monthly');
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { user, isLoading } = useUser();
+  const { user } = useUser();
   const router = useRouter();
 
   const handlePlanSelect = async (planId: string) => {
@@ -205,10 +205,9 @@ export function PricingSection() {
 
         {/* Pricing Cards */}
         <div className="mx-auto mt-16 grid max-w-7xl grid-cols-1 items-stretch gap-8 lg:grid-cols-4 lg:gap-6 xl:gap-8">
-          {tiers.map((tier, tierIdx) => {
-            const yearlyPrice = tier.isFree ? 0 : tier.price.yearly * 12;
-            const monthlyPrice = tier.price.monthly;
-            const currentPrice = billingFrequency === 'monthly' ? monthlyPrice : yearlyPrice;
+          {tiers.map((tier) => {
+
+
             const isLoading = loadingPlan === tier.id;
             const Icon = tier.icon;
 

@@ -1,5 +1,4 @@
 import { getSession } from '@auth0/nextjs-auth0';
-import { NextRequest, NextResponse } from 'next/server';
 
 // MARK: - Auth0 Configuration
 /**
@@ -19,7 +18,7 @@ export const auth0Config = {
  * @param request - Next.js request object
  * @returns User session or null
  */
-export async function getUserSession(request: NextRequest) {
+export async function getUserSession() {
   try {
     const session = await getSession();
     return session;
@@ -31,12 +30,11 @@ export async function getUserSession(request: NextRequest) {
 
 /**
  * Get user ID from session
- * @param request - Next.js request object
  * @returns User ID or null
  */
-export async function getUserId(request: NextRequest): Promise<string | null> {
+export async function getUserId(): Promise<string | null> {
   try {
-    const session = await getUserSession(request);
+    const session = await getUserSession();
     return session?.user?.sub || null;
   } catch (error) {
     console.error('Error getting user ID:', error);
@@ -46,12 +44,11 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 
 /**
  * Check if user is authenticated
- * @param request - Next.js request object
  * @returns True if user is authenticated, false otherwise
  */
-export async function isAuthenticated(request: NextRequest): Promise<boolean> {
+export async function isAuthenticated(): Promise<boolean> {
   try {
-    const session = await getUserSession(request);
+    const session = await getUserSession();
     return !!session?.user;
   } catch (error) {
     console.error('Error checking authentication:', error);
@@ -61,12 +58,11 @@ export async function isAuthenticated(request: NextRequest): Promise<boolean> {
 
 /**
  * Get user profile from session
- * @param request - Next.js request object
  * @returns User profile or null
  */
-export async function getUserProfile(request: NextRequest) {
+export async function getUserProfile() {
   try {
-    const session = await getUserSession(request);
+    const session = await getUserSession();
     if (!session?.user) return null;
     
     return {

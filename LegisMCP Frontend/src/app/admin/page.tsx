@@ -1,23 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
   Activity, 
   CreditCard, 
   AlertCircle,
-  Search,
-  RefreshCw,
-  ChevronRight,
   BarChart3
 } from 'lucide-react';
 import { UserManagementTable } from '@/components/admin/user-management-table';
@@ -36,14 +31,7 @@ export default function AdminDashboard() {
     totalApiCalls: 0
   });
 
-  useEffect(() => {
-    if (user && !isLoading) {
-      checkAdminStatus();
-      loadDashboardStats();
-    }
-  }, [user, isLoading]);
-
-  const checkAdminStatus = async () => {
+  const checkAdminStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/check');
       if (response.ok) {
@@ -58,9 +46,9 @@ export default function AdminDashboard() {
     } finally {
       setIsCheckingAdmin(false);
     }
-  };
+  }, [router]);
 
-  const loadDashboardStats = async () => {
+  const loadDashboardStats = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/stats');
       if (response.ok) {
@@ -70,7 +58,14 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      checkAdminStatus();
+      loadDashboardStats();
+    }
+  }, [user, isLoading, checkAdminStatus, loadDashboardStats]);
 
   if (isLoading || isCheckingAdmin) {
     return (
@@ -94,7 +89,7 @@ export default function AdminDashboard() {
                 <AlertCircle className="h-12 w-12 text-destructive mb-4" />
                 <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
                 <p className="text-muted-foreground mb-4">
-                  You don't have permission to access the admin dashboard.
+                  You don&apos;t have permission to access the admin dashboard.
                 </p>
                 <Button onClick={() => router.push('/dashboard')}>
                   Return to Dashboard

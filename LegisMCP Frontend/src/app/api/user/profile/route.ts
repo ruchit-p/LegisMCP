@@ -13,6 +13,16 @@ interface Auth0ManagementConfig {
     clientSecret: string;
 }
 
+interface UserUpdates {
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+    name?: string;
+    nickname?: string;
+    picture?: string;
+    given_name?: string;
+    family_name?: string;
+}
+
 class Auth0ManagementClient {
     private config: Auth0ManagementConfig;
     private accessToken: string | null = null;
@@ -55,7 +65,7 @@ class Auth0ManagementClient {
         return this.accessToken;
     }
 
-    async updateUser(userId: string, updates: any) {
+    async updateUser(userId: string, updates: UserUpdates) {
         const token = await this.getAccessToken();
         
         const response = await fetch(`https://${this.config.domain}/api/v2/users/${userId}`, {
@@ -93,7 +103,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get user profile
-        const profile = await getUserProfile(request);
+        const profile = await getUserProfile();
         if (!profile) {
             const errorResponse = createAuth0ErrorResponse(Auth0Error.INVALID_TOKEN);
             return NextResponse.json(errorResponse, { status: errorResponse.statusCode });
@@ -129,7 +139,7 @@ export async function PUT(request: NextRequest) {
         const { name, nickname, given_name, family_name, picture, user_metadata } = body;
 
         // Validate input
-        const updates: any = {};
+        const updates: UserUpdates = {};
         
         if (name !== undefined) {
             if (typeof name !== 'string') {
@@ -202,7 +212,7 @@ export async function PUT(request: NextRequest) {
 
         // If no updates provided, return current profile
         if (Object.keys(updates).length === 0) {
-            const profile = await getUserProfile(request);
+            const profile = await getUserProfile();
             return NextResponse.json({ 
                 profile,
                 success: true,

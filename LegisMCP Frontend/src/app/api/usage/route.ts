@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Forward request to Cloudflare Worker
-        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+        const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
         const workerResponse = await fetch(`${workerUrl}/usage?days=${days}`, {
             headers: {
                 'Authorization': `Bearer ${session.accessToken}`,

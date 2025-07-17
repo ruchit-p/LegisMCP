@@ -53,13 +53,13 @@ STRIPE_ENTERPRISE_YEARLY_PRICE_ID=price_enterprise_yearly_id_here
 # CLOUDFLARE WORKER CONFIGURATION
 # =============================================================================
 # URL of your Cloudflare Worker MCP server
-NEXT_PUBLIC_MCP_WORKER_URL=https://mcp-congress-gov.your-subdomain.workers.dev
+NEXT_PUBLIC_MCP_WORKER_URL=https://mcp.example.com
 
-# URL for REST API endpoints (same as MCP worker)
-NEXT_PUBLIC_API_BASE_URL=https://mcp-congress-gov.your-subdomain.workers.dev/api
+# URL for REST API endpoints (LegisAPI)
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api
 
 # URL for Cloudflare Worker API (LegisAPI)
-CLOUDFLARE_WORKER_URL=https://legis-api.dyanstyplatforms.workers.dev
+CLOUDFLARE_WORKER_URL=https://api.example.com
 
 # =============================================================================
 # PRODUCTION DEPLOYMENT NOTES

@@ -4,8 +4,7 @@ import {
   validateStripeConfig, 
   isValidPlan, 
   isValidBillingFrequency, 
-  getPriceId, 
-  getPlan 
+  getPriceId
 } from '@/lib/stripe-config';
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;

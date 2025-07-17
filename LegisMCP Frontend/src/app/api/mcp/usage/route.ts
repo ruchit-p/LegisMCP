@@ -1,11 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSession } from '@auth0/nextjs-auth0/edge';
+
+// MARK: - Types
+interface MCPLogEntry {
+  id: string;
+  timestamp: string;
+  tool_name: string;
+  status: string;
+  response_time_ms?: number;
+  error_message?: string;
+}
+
+
 
 // Fetch real MCP usage data from Cloudflare Worker
 const getMCPUsageData = async (accessToken: string) => {
   try {
     // Use the Cloudflare Worker URL from env or default
-    const workerUrl = process.env.CLOUDFLARE_WORKER_URL || 'https://legis-api.dyanstyplatforms.workers.dev';
+    const workerUrl = process.env.CLOUDFLARE_WORKER_URL || 'https://api.example.com';
     
     // Fetch user data and MCP logs from Cloudflare Worker using the Auth0 access token
     const headers: HeadersInit = {
@@ -60,7 +72,7 @@ const getMCPUsageData = async (accessToken: string) => {
     }
     
     // Transform MCP logs to our format
-    const usage = (usageLogs.logs || []).map((log: any) => ({
+    const usage = (usageLogs.logs || []).map((log: MCPLogEntry) => ({
       id: `call_${log.id}`,
       timestamp: log.timestamp,
       tool: log.tool_name,
@@ -95,9 +107,9 @@ const getMCPUsageData = async (accessToken: string) => {
   }
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getSession(request as any, new NextResponse());
+    const session = await getSession();
     
     if (!session?.user) {
       return NextResponse.json(

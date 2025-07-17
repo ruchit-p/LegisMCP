@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -30,10 +30,7 @@ interface ApiKeyInfo {
   createdAt: string;
 }
 
-interface CreateKeyRequest {
-  name: string;
-  expiresAt?: string;
-}
+
 
 // MARK: - API Key Manager Component
 
@@ -49,15 +46,10 @@ export function ApiKeyManager() {
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<ApiKeyInfo | null>(null);
   const { toast } = useToast();
 
-  // Load API keys on component mount
-  useEffect(() => {
-    loadApiKeys();
-  }, []);
-
   /**
    * Loads the user's API keys from the backend.
    */
-  const loadApiKeys = async () => {
+  const loadApiKeys = useCallback(async () => {
     try {
       const response = await fetch('/api/keys');
       if (!response.ok) {
@@ -75,7 +67,12 @@ export function ApiKeyManager() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load API keys on component mount
+  useEffect(() => {
+    loadApiKeys();
+  }, [loadApiKeys]);
 
   /**
    * Creates a new API key.
@@ -306,10 +303,10 @@ export function ApiKeyManager() {
             </div>
             <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
               <AlertCircle className="h-4 w-4" />
-              Store this key securely. You won't be able to view it again.
+                              Store this key securely. You won&apos;t be able to view it again.
             </div>
             <Button onClick={dismissNewKey} variant="outline" size="sm">
-              I've saved my key
+              I&apos;ve saved my key
             </Button>
           </CardContent>
         </Card>

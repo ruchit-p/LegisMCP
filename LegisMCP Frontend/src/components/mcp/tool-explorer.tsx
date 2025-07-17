@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,6 @@ import {
     Copy, 
     CheckCircle,
     XCircle,
-    Info,
     ChevronDown,
     ChevronRight
 } from 'lucide-react';
@@ -36,7 +35,7 @@ interface ToolExplorerProps {
 interface ToolCall {
     id: string;
     name: string;
-    arguments: any;
+    arguments: Record<string, unknown>;
     result?: McpToolResult;
     error?: string;
     timestamp: Date;
@@ -54,7 +53,7 @@ interface ResourceRead {
 interface PromptGet {
     id: string;
     name: string;
-    arguments: any;
+    arguments: Record<string, unknown>;
     result?: McpPromptResult;
     error?: string;
     timestamp: Date;
@@ -80,15 +79,9 @@ export function ToolExplorer({ client, className = '' }: ToolExplorerProps) {
 
     // MARK: - Effect Hooks
 
-    useEffect(() => {
-        if (client && client.isConnected()) {
-            loadAvailableItems();
-        }
-    }, [client]);
-
     // MARK: - Data Loading
 
-    const loadAvailableItems = async () => {
+    const loadAvailableItems = useCallback(async () => {
         setIsLoading(true);
         try {
             const [toolsData, resourcesData, promptsData] = await Promise.all([
@@ -126,7 +119,13 @@ export function ToolExplorer({ client, className = '' }: ToolExplorerProps) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [client, toast]);
+
+    useEffect(() => {
+        if (client && client.isConnected()) {
+            loadAvailableItems();
+        }
+    }, [client, loadAvailableItems]);
 
     // MARK: - Tool Operations
 
@@ -296,7 +295,7 @@ export function ToolExplorer({ client, className = '' }: ToolExplorerProps) {
         });
     };
 
-    const formatJsonArguments = (args: any): string => {
+    const formatJsonArguments = (args: Record<string, unknown>): string => {
         return JSON.stringify(args, null, 2);
     };
 

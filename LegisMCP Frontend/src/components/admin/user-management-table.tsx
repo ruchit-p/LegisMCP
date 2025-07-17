@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +15,7 @@ import {
   MoreVertical,
   CreditCard,
   User,
-  Ban,
-  CheckCircle
+  Ban
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -57,11 +56,7 @@ export function UserManagementTable({ onUpdate }: UserManagementTableProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, [searchQuery, filterPlan, filterStatus, currentPage]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({
@@ -82,7 +77,11 @@ export function UserManagementTable({ onUpdate }: UserManagementTableProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, filterPlan, filterStatus, currentPage]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handlePlanChange = async (userId: number, newPlanSlug: string) => {
     setIsUpdating(`plan-${userId}`);

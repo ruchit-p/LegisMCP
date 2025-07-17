@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ interface Subscription {
 }
 
 interface SubscriptionManagerProps {
-  onSubscriptionUpdate?: () => void;
+  onSubscriptionUpdate?: () => Promise<void>;
 }
 
 export function SubscriptionManager({ onSubscriptionUpdate }: SubscriptionManagerProps) {
@@ -28,6 +28,24 @@ export function SubscriptionManager({ onSubscriptionUpdate }: SubscriptionManage
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const searchParams = useSearchParams();
+
+  const loadSubscription = useCallback(async () => {
+    try {
+      const response = await fetch('/api/user/subscription');
+      if (response.ok) {
+        const data = await response.json();
+        setSubscription(data.subscription);
+        // Call the callback if subscription data was updated
+        if (onSubscriptionUpdate) {
+          await onSubscriptionUpdate();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading subscription:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onSubscriptionUpdate]);
 
   useEffect(() => {
     loadSubscription();
@@ -42,21 +60,7 @@ export function SubscriptionManager({ onSubscriptionUpdate }: SubscriptionManage
         loadSubscription();
       }, 2000); // Give webhook time to process
     }
-  }, [searchParams]);
-
-  const loadSubscription = async () => {
-    try {
-      const response = await fetch('/api/user/subscription');
-      if (response.ok) {
-        const data = await response.json();
-        setSubscription(data.subscription);
-      }
-    } catch (error) {
-      console.error('Error loading subscription:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [searchParams, loadSubscription]);
 
   const handleManageSubscription = async () => {
     setIsUpdating(true);
@@ -158,7 +162,7 @@ export function SubscriptionManager({ onSubscriptionUpdate }: SubscriptionManage
             </div>
           )}
           <p className="text-muted-foreground mb-4">
-            You don't have an active subscription. Choose a plan to get started with full access to our Legislative data API.
+            You don&apos;t have an active subscription. Choose a plan to get started with full access to our Legislative data API.
           </p>
           <Button asChild>
             <a href="/#pricing">Choose a Plan</a>

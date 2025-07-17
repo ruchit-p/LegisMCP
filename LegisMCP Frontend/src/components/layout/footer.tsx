@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Book } from 'lucide-react'
+import Image from 'next/image'
 
 const navigation = {
   product: [
@@ -34,9 +34,13 @@ export function Footer() {
           {/* Logo and description */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Book className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <Image 
+                src="https://pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev/Legi%20USA%20Logo%20Black%20Transparent.png"
+                alt="LegislativeMCP"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
               <span className="font-bold text-xl">LegislativeMCP</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-md">

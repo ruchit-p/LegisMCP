@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSession } from '@auth0/nextjs-auth0';
 
 /**
  * GET /api/user/subscription - Get user's subscription information
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get user session
     const session = await getSession();
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward request to Cloudflare Worker
-    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcp-congress-gov.your-subdomain.workers.dev/api';
+    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
     const response = await fetch(`${workerUrl}/user/profile`, {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,

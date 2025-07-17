@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -358,7 +358,7 @@ export default function BillingPage() {
                     <div>
                       <h4 className="font-medium">Cancel Subscription</h4>
                       <p className="text-sm text-muted-foreground mt-1">
-                        You'll retain access until the end of your billing period
+                        You&apos;ll retain access until the end of your billing period
                       </p>
                     </div>
                     <Button

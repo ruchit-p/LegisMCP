@@ -5,8 +5,8 @@
 
 interface MCPLogEntry {
   tool_name: string;
-  request_data?: any;
-  response_data?: any;
+  request_data?: Record<string, unknown>;
+  response_data?: Record<string, unknown>;
   status: 'success' | 'error' | 'timeout';
   error_message?: string;
   response_time_ms?: number;
@@ -21,7 +21,7 @@ export class MCPUsageLogger {
   private constructor() {
     this.workerUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL || 
                      process.env.CLOUDFLARE_WORKER_URL || 
-                     'https://legis-api.dyanstyplatforms.workers.dev';
+                     'https://api.example.com';
   }
 
   /**
@@ -74,8 +74,8 @@ export class MCPUsageLogger {
    */
   public async logSuccess(
     toolName: string, 
-    requestData: any, 
-    responseData: any, 
+    requestData: Record<string, unknown>, 
+    responseData: Record<string, unknown>, 
     responseTimeMs: number,
     tokensUsed?: number
   ): Promise<void> {
@@ -94,7 +94,7 @@ export class MCPUsageLogger {
    */
   public async logError(
     toolName: string, 
-    requestData: any, 
+    requestData: Record<string, unknown>, 
     errorMessage: string, 
     responseTimeMs?: number
   ): Promise<void> {
@@ -112,7 +112,7 @@ export class MCPUsageLogger {
    */
   public async logTimeout(
     toolName: string, 
-    requestData: any, 
+    requestData: Record<string, unknown>, 
     responseTimeMs: number
   ): Promise<void> {
     await this.logToolCall({
