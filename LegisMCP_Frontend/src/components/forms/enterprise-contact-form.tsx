@@ -20,7 +20,6 @@ export function EnterpriseContactForm() {
   
   // Form tracking
   const formTracking = useFormTracking('enterprise-contact-form', 'Enterprise Contact Form');
-  const formStartTime = useRef<number>(Date.now());
   const fieldFocusTimes = useRef<Record<string, number>>({});
 
   const [formData, setFormData] = useState({

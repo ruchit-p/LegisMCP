@@ -206,7 +206,7 @@ export function withAnalytics<T extends object>(
       onClick: (event: React.MouseEvent<HTMLElement>) => {
         // Call original onClick if it exists
         if ('onClick' in props && typeof props.onClick === 'function') {
-          (props.onClick as Function)(event);
+          (props.onClick as (event: React.MouseEvent<HTMLElement>) => void)(event);
         }
         
         // Track the click

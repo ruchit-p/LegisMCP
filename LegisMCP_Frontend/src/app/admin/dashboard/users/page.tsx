@@ -4,51 +4,42 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { redirect } from 'next/navigation';
 import { DashboardLayout, Alert } from '@/components/admin/dashboard-layout';
-import { OverviewDashboard } from '@/components/admin/overview-dashboard';
+import { UserActivityDashboard } from '@/components/admin/user-activity-dashboard';
 import { useAnalytics } from '@/components/providers/analytics-provider';
 
-export default function AdminDashboardPage() {
+export default function UserAnalyticsDashboardPage() {
   const { user, isLoading } = useUser();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   // Load alerts on component mount
   useEffect(() => {
-    // Mock alerts - in real implementation, these would come from API
+    // Mock alerts related to user activity
     const mockAlerts: Alert[] = [
       {
         id: '1',
-        type: 'error',
-        title: 'High Error Rate Detected',
-        message: 'Error rate has increased to 3.2% in the last hour',
+        type: 'info',
+        title: 'User Activity Spike',
+        message: 'User activity has increased by 35% in the last 2 hours',
         timestamp: new Date(),
         isRead: false,
-        priority: 'high'
+        priority: 'medium'
       },
       {
         id: '2',
         type: 'warning',
-        title: 'API Rate Limit Approaching',
-        message: 'User auth0|user123 is approaching their rate limit',
-        timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+        title: 'High Bounce Rate',
+        message: 'Homepage bounce rate is above 60% - consider optimization',
+        timestamp: new Date(Date.now() - 900000), // 15 minutes ago
         isRead: false,
         priority: 'medium'
       },
       {
         id: '3',
-        type: 'info',
-        title: 'System Maintenance Scheduled',
-        message: 'Scheduled maintenance window tonight at 2 AM UTC',
-        timestamp: new Date(Date.now() - 600000), // 10 minutes ago
-        isRead: true,
-        priority: 'low'
-      },
-      {
-        id: '4',
         type: 'success',
-        title: 'Database Backup Completed',
-        message: 'Daily backup completed successfully',
-        timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+        title: 'User Engagement Up',
+        message: 'Average session duration increased by 25%',
+        timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
         isRead: true,
         priority: 'low'
       }
@@ -57,11 +48,10 @@ export default function AdminDashboardPage() {
     setAlerts(mockAlerts);
   }, []);
 
-  // Check if user has admin access
+  // Track user analytics dashboard access
   useEffect(() => {
     if (!isLoading && user) {
-      // Track admin dashboard access
-      analytics.logFeatureUsage('admin_dashboard_access', 'admin', true);
+      analytics.logFeatureUsage('user_analytics_dashboard_access', 'admin', true);
     }
   }, [user, isLoading, analytics]);
 
@@ -75,7 +65,6 @@ export default function AdminDashboardPage() {
       )
     );
     
-    // Track alert dismissal
     analytics.logFeatureUsage('alert_dismissed', 'admin', true);
   };
 
@@ -93,10 +82,10 @@ export default function AdminDashboardPage() {
     redirect('/api/auth/login');
   }
 
-  // Check if user has admin access (you might want to implement proper role checking)
+  // Check admin access
   const hasAdminAccess = user.email?.includes('@legismcp.com') || 
                         user.nickname === 'admin' || 
-                        user.email === 'admin@example.com'; // Temporary check
+                        user.email === 'admin@example.com';
 
   if (!hasAdminAccess) {
     return (
@@ -119,12 +108,12 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardLayout
-      title="System Overview"
-      description="Monitor your LegislativeMCP platform performance and metrics"
+      title="User Analytics"
+      description="Monitor user behavior, engagement, and interaction patterns"
       alerts={alerts}
       onAlertDismiss={handleAlertDismiss}
     >
-      <OverviewDashboard />
+      <UserActivityDashboard />
     </DashboardLayout>
   );
 }

@@ -9,11 +9,6 @@ import {
   Users, 
   Activity, 
   AlertTriangle, 
-  TrendingUp, 
-  Clock, 
-  Database,
-  Zap,
-  Shield,
   RefreshCw,
   ArrowUp,
   ArrowDown,
@@ -27,11 +22,6 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
   AreaChart,
   Area
 } from 'recharts';
@@ -290,10 +280,10 @@ function RecentErrorsList({ errors }: { errors: RecentError[] }) {
 export function OverviewDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>(mockSystemMetrics);
-  const [trendData, setTrendData] = useState<TrendData[]>(mockTrendData);
-  const [topEndpoints, setTopEndpoints] = useState<TopEndpoint[]>(mockTopEndpoints);
-  const [recentErrors, setRecentErrors] = useState<RecentError[]>(mockRecentErrors);
+  const [systemMetrics] = useState<SystemMetrics>(mockSystemMetrics);
+  const [trendData] = useState<TrendData[]>(mockTrendData);
+  const [topEndpoints] = useState<TopEndpoint[]>(mockTopEndpoints);
+  const [recentErrors] = useState<RecentError[]>(mockRecentErrors);
 
   // Refresh data
   const refreshData = async () => {

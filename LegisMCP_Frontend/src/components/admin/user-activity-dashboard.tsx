@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,6 @@ import {
   Clock, 
   Search,
   Download,
-  Filter,
-  Calendar,
   MapPin,
   Smartphone,
   Monitor,
@@ -31,11 +29,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
+  Cell
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
@@ -46,7 +40,7 @@ interface UserActivityEvent {
   userEmail: string;
   sessionId: string;
   eventType: string;
-  eventData: any;
+  eventData: Record<string, unknown>;
   pageUrl: string;
   pageTitle: string;
   deviceType: 'desktop' | 'mobile' | 'tablet';
@@ -403,10 +397,10 @@ function PageAnalyticsTable({ pages }: PageAnalyticsTableProps) {
 
 // Main component
 export function UserActivityDashboard() {
-  const [events, setEvents] = useState<UserActivityEvent[]>(mockUserEvents);
-  const [sessions, setSessions] = useState<UserSession[]>(mockUserSessions);
-  const [pages, setPages] = useState<PageAnalytics[]>(mockPageAnalytics);
-  const [deviceStats, setDeviceStats] = useState<DeviceStats[]>(mockDeviceStats);
+  const [events] = useState<UserActivityEvent[]>(mockUserEvents);
+  const [sessions] = useState<UserSession[]>(mockUserSessions);
+  const [pages] = useState<PageAnalytics[]>(mockPageAnalytics);
+  const [deviceStats] = useState<DeviceStats[]>(mockDeviceStats);
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
   const [searchQuery, setSearchQuery] = useState('');
 

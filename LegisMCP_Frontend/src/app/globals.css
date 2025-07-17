@@ -58,6 +58,28 @@
   }
 }
 
+/* Mobile and tablet background override */
+@media (max-width: 1024px) {
+  body {
+    background-color: white !important;
+  }
+  
+  .bg-background {
+    background-color: white !important;
+  }
+  
+  /* Override gradient backgrounds in sections */
+  .bg-gradient-to-b {
+    background: white !important;
+  }
+  
+  /* Override muted backgrounds */
+  .bg-muted\/20,
+  .bg-muted\/50 {
+    background-color: white !important;
+  }
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;

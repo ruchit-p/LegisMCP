@@ -59,7 +59,7 @@ export default function RootLayout({
           >
             <StripeProvider>
               <AnalyticsProvider>
-                <div className="min-h-screen bg-background">
+                <div className="min-h-screen bg-background lg:bg-background md:bg-white sm:bg-white bg-white">
                   {children}
                 </div>
                 <Toaster />

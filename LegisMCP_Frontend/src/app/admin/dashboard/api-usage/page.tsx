@@ -4,50 +4,41 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { redirect } from 'next/navigation';
 import { DashboardLayout, Alert } from '@/components/admin/dashboard-layout';
-import { OverviewDashboard } from '@/components/admin/overview-dashboard';
+import { ApiUsageDashboard } from '@/components/admin/api-usage-dashboard';
 import { useAnalytics } from '@/components/providers/analytics-provider';
 
-export default function AdminDashboardPage() {
+export default function ApiUsageDashboardPage() {
   const { user, isLoading } = useUser();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   // Load alerts on component mount
   useEffect(() => {
-    // Mock alerts - in real implementation, these would come from API
+    // Mock alerts related to API usage
     const mockAlerts: Alert[] = [
       {
         id: '1',
-        type: 'error',
-        title: 'High Error Rate Detected',
-        message: 'Error rate has increased to 3.2% in the last hour',
-        timestamp: new Date(),
-        isRead: false,
-        priority: 'high'
-      },
-      {
-        id: '2',
         type: 'warning',
-        title: 'API Rate Limit Approaching',
-        message: 'User auth0|user123 is approaching their rate limit',
-        timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+        title: 'High API Usage Detected',
+        message: 'API calls have increased by 45% in the last hour',
+        timestamp: new Date(),
         isRead: false,
         priority: 'medium'
       },
       {
-        id: '3',
-        type: 'info',
-        title: 'System Maintenance Scheduled',
-        message: 'Scheduled maintenance window tonight at 2 AM UTC',
+        id: '2',
+        type: 'error',
+        title: 'Rate Limit Violations',
+        message: '3 users have exceeded their rate limits',
         timestamp: new Date(Date.now() - 600000), // 10 minutes ago
-        isRead: true,
-        priority: 'low'
+        isRead: false,
+        priority: 'high'
       },
       {
-        id: '4',
-        type: 'success',
-        title: 'Database Backup Completed',
-        message: 'Daily backup completed successfully',
+        id: '3',
+        type: 'info',
+        title: 'New API Endpoint Released',
+        message: '/api/votes endpoint is now available',
         timestamp: new Date(Date.now() - 3600000), // 1 hour ago
         isRead: true,
         priority: 'low'
@@ -57,11 +48,10 @@ export default function AdminDashboardPage() {
     setAlerts(mockAlerts);
   }, []);
 
-  // Check if user has admin access
+  // Track API usage dashboard access
   useEffect(() => {
     if (!isLoading && user) {
-      // Track admin dashboard access
-      analytics.logFeatureUsage('admin_dashboard_access', 'admin', true);
+      analytics.logFeatureUsage('api_usage_dashboard_access', 'admin', true);
     }
   }, [user, isLoading, analytics]);
 
@@ -75,7 +65,6 @@ export default function AdminDashboardPage() {
       )
     );
     
-    // Track alert dismissal
     analytics.logFeatureUsage('alert_dismissed', 'admin', true);
   };
 
@@ -93,10 +82,10 @@ export default function AdminDashboardPage() {
     redirect('/api/auth/login');
   }
 
-  // Check if user has admin access (you might want to implement proper role checking)
+  // Check admin access
   const hasAdminAccess = user.email?.includes('@legismcp.com') || 
                         user.nickname === 'admin' || 
-                        user.email === 'admin@example.com'; // Temporary check
+                        user.email === 'admin@example.com';
 
   if (!hasAdminAccess) {
     return (
@@ -119,12 +108,12 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardLayout
-      title="System Overview"
-      description="Monitor your LegislativeMCP platform performance and metrics"
+      title="API Usage Analytics"
+      description="Monitor API usage, rate limits, and endpoint performance"
       alerts={alerts}
       onAlertDismiss={handleAlertDismiss}
     >
-      <OverviewDashboard />
+      <ApiUsageDashboard />
     </DashboardLayout>
   );
 }

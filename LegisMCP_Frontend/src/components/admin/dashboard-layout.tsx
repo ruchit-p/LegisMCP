@@ -12,8 +12,6 @@ import {
   Activity, 
   Settings, 
   Database,
-  TrendingUp,
-  Shield,
   Bell,
   Menu,
   X,
@@ -21,7 +19,6 @@ import {
   Home,
   Zap,
   FileText,
-  Clock,
   AlertCircle,
   CheckCircle,
   Info
