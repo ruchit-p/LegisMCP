@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { UserProps } from "../types.js";
-import { validateUserAuth, createAuthErrorResponse, createUsageLimitErrorResponse } from "../middlewares/authValidation.js";
+import { validateUserAuth, createAuthErrorResponse, createUsageLimitErrorResponse, createRateLimitErrorResponse } from "../middlewares/authValidation.js";
 
 // Import comprehensive tool implementations
 import { 
@@ -84,7 +84,7 @@ async function withAuthValidation(
   }
   
   if (!authResult.hasUsageLeft) {
-    return createUsageLimitErrorResponse(authResult.user);
+    return createUsageLimitErrorResponse(authResult.user, env.FRONTEND_URL);
   }
   
   // User is authenticated and has usage left, proceed with tool execution
@@ -97,7 +97,45 @@ async function withAuthValidation(
  * @param env - Environment variables
  * @param props - User properties including auth tokens
  */
-export function registerTools(server: McpServer, env: any, props: UserProps) {
+export async function registerTools(server: McpServer, env: any, props: UserProps) {
+  // Check authentication before registering any tools
+  // Only authenticated users should see tools available
+  const authResult = await validateUserAuth(props, env.API_BASE_URL);
+  
+  if (!authResult.isAuthenticated) {
+    // Don't register any tools if user is not authenticated
+    console.log('User not authenticated, no tools will be registered');
+    return;
+  }
+  
+  // If user is rate limited, only show the rate limit tool
+  if (authResult.isRateLimited) {
+    console.log('User is rate limited, showing only rate limit tool');
+    server.tool(
+      "rate-limit-info",
+      "Information about your current rate limit status and how to resolve it",
+      {},
+      async () => {
+        return createRateLimitErrorResponse(authResult.user, env.FRONTEND_URL);
+      }
+    );
+    return;
+  }
+  
+  // If user has no usage left, only show the usage cap tool
+  if (!authResult.hasUsageLeft) {
+    console.log('User has no usage left, showing only usage cap tool');
+    server.tool(
+      "usage-cap-info",
+      "Information about your API usage limits and upgrade options",
+      {},
+      async () => {
+        return createUsageLimitErrorResponse(authResult.user, env.FRONTEND_URL);
+      }
+    );
+    return;
+  }
+  
   // All tools now use LegisAPI backend instead of direct Congress.gov API calls
   // Register the bill analysis tool
   server.tool(
@@ -202,7 +240,7 @@ Automatically searches, fetches related data, and provides insights.`,
       }
       
       if (!authResult.hasUsageLeft) {
-        return createUsageLimitErrorResponse(authResult.user);
+        return createUsageLimitErrorResponse(authResult.user, env.FRONTEND_URL);
       }
 
       // Universal search requires implementation in LegisAPI backend

@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { redirect } from 'next/navigation';
 import { DashboardLayout, Alert } from '@/components/admin/dashboard-layout';
 import { OverviewDashboard } from '@/components/admin/overview-dashboard';
 import { useAnalytics } from '@/components/providers/analytics-provider';
+import { WithRoleCheck } from '@/components/auth/WithRoleCheck';
 
 export default function AdminDashboardPage() {
+  return (
+    <WithRoleCheck requiredRole={['admin', 'super_admin']}>
+      <AdminDashboardContent />
+    </WithRoleCheck>
+  );
+}
+
+function AdminDashboardContent() {
   const { user, isLoading } = useUser();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -57,10 +65,9 @@ export default function AdminDashboardPage() {
     setAlerts(mockAlerts);
   }, []);
 
-  // Check if user has admin access
+  // Track admin dashboard access
   useEffect(() => {
     if (!isLoading && user) {
-      // Track admin dashboard access
       analytics.logFeatureUsage('admin_dashboard_access', 'admin', true);
     }
   }, [user, isLoading, analytics]);
@@ -78,44 +85,6 @@ export default function AdminDashboardPage() {
     // Track alert dismissal
     analytics.logFeatureUsage('alert_dismissed', 'admin', true);
   };
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (!user) {
-    redirect('/api/auth/login');
-  }
-
-  // Check if user has admin access (you might want to implement proper role checking)
-  const hasAdminAccess = user.email?.includes('@legismcp.com') || 
-                        user.nickname === 'admin' || 
-                        user.email === 'admin@example.com'; // Temporary check
-
-  if (!hasAdminAccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-4">
-            You don&apos;t have permission to access the admin dashboard.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="text-primary hover:text-primary/80 underline"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <DashboardLayout

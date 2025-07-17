@@ -14,6 +14,8 @@ import { adminRoutes } from "./routes/admin";
 import { webhookRoutes } from "./routes/webhook";
 import { mcpRoutes } from "./routes/mcp";
 import { analyticsRoutes } from "./routes/analytics";
+import alertsRoutes from "./routes/alerts";
+import { monitoringRoutes } from "./routes/monitoring";
 
 const app = new Hono<{
 	Bindings: Env;
@@ -70,14 +72,81 @@ app.post("/api/users/register", async (c) => {
 
 app.use("/api/*", analytics());
 
-app.get("/api/me", (c) => {
+app.get("/api/me", async (c) => {
 	const user = c.get("user");
 	const claims = c.var.jwtPayload as JWTPayload;
-	return c.json({
+	const checkBillingCycle = c.req.query("check_billing_cycle") === "true";
+	
+	// Basic user info response
+	const userInfo = {
 		...claims,
 		plan: user.plan,
 		api_calls_count: user.api_calls_count,
 		api_calls_limit: user.api_calls_limit,
+		mcp_calls_count: user.mcp_calls_count || 0,
+		mcp_calls_limit: user.mcp_calls_limit || user.api_calls_limit,
+	};
+	
+	// If billing cycle check is requested, include billing cycle info
+	if (checkBillingCycle) {
+		const { BillingCycleService } = await import("./services/billing-cycle");
+		const billingCycleService = new BillingCycleService(c.env.DB);
+		
+		// Check and reset usage if needed
+		await billingCycleService.checkAndResetUsage(user.id);
+		
+		// Get current usage status
+		const usageStatus = await billingCycleService.getUserUsageStatus(user.id);
+		
+		if (usageStatus) {
+			(userInfo as any).mcp_calls_count = usageStatus.currentUsage;
+			(userInfo as any).mcp_calls_limit = usageStatus.limit;
+			(userInfo as any).billing_cycle_end = usageStatus.billingCycleEnd;
+			(userInfo as any).days_until_reset = usageStatus.daysUntilReset;
+			(userInfo as any).plan = usageStatus.planSlug;
+			(userInfo as any).has_usage_left = usageStatus.hasUsageLeft;
+			(userInfo as any).usage_percent = usageStatus.percentUsed;
+		}
+	}
+	
+	return c.json(userInfo);
+});
+
+// Scheduled task to reset usage for all users (can be called by cron)
+app.post("/api/admin/reset-usage", async (c) => {
+	// This endpoint should be secured with a special token/key
+	const cronToken = c.req.header("x-cron-token");
+	const expectedToken = (c.env as any).CRON_TOKEN || "default-cron-token";
+	
+	if (cronToken !== expectedToken) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
+	
+	const { BillingCycleService } = await import("./services/billing-cycle");
+	const { MonitoringService } = await import("./services/monitoring");
+	
+	const billingCycleService = new BillingCycleService(c.env.DB, c.env.ANALYTICS);
+	const monitoringService = new MonitoringService(c.env.DB, c.env.ANALYTICS);
+	
+	const resetCount = await billingCycleService.resetUsageForAllUsers();
+	
+	// Log the manual reset operation
+	await monitoringService.logEvent({
+		type: 'usage_reset',
+		category: 'billing',
+		action: 'manual_reset',
+		value: resetCount,
+		metadata: {
+			resetCount,
+			triggerType: 'cron_endpoint',
+			timestamp: new Date().toISOString()
+		}
+	});
+	
+	return c.json({
+		message: `Usage reset for ${resetCount} users`,
+		resetCount,
+		timestamp: new Date().toISOString()
 	});
 });
 
@@ -422,6 +491,12 @@ app.route('/api/mcp', mcpRoutes);
 // Analytics routes (authenticated users, some admin-only)
 app.route('/api/analytics', analyticsRoutes);
 
+// Alerts routes (authenticated users, some admin-only)
+app.route('/api/alerts', alertsRoutes);
+
+// Monitoring routes (admin-only)
+app.route('/api/monitoring', monitoringRoutes);
+
 app.onError((err, c) => {
 	console.error("Error details:", err);
 	console.error("Error stack:", err.stack);
@@ -432,4 +507,70 @@ app.onError((err, c) => {
 	return c.json({ error: "Internal server error" }, 500 as any);
 });
 
-export default app;
+// Scheduled event handler for daily usage reset
+export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+	console.log('Running scheduled usage reset at:', new Date().toISOString());
+	
+	try {
+		const { BillingCycleService } = await import("./services/billing-cycle");
+		const { MonitoringService } = await import("./services/monitoring");
+		
+		const billingCycleService = new BillingCycleService(env.DB, env.ANALYTICS);
+		const monitoringService = new MonitoringService(env.DB, env.ANALYTICS);
+		
+		// Reset usage for all users whose billing cycle has ended
+		const resetCount = await billingCycleService.resetUsageForAllUsers();
+		
+		// Log the scheduled operation
+		await monitoringService.logEvent({
+			type: 'usage_reset',
+			category: 'billing',
+			action: 'scheduled_reset',
+			value: resetCount,
+			metadata: {
+				resetCount,
+				triggerType: 'scheduled_event',
+				timestamp: new Date().toISOString()
+			}
+		});
+		
+		console.log(`Scheduled usage reset completed: ${resetCount} users reset`);
+		
+		// Return success response
+		return new Response(JSON.stringify({
+			success: true,
+			message: `Usage reset for ${resetCount} users`,
+			resetCount,
+			timestamp: new Date().toISOString()
+		}), {
+			headers: { 'Content-Type': 'application/json' }
+		});
+		
+	} catch (error) {
+		console.error('Scheduled usage reset failed:', error);
+		
+		// Log error to monitoring
+		const { MonitoringService } = await import("./services/monitoring");
+		const monitoringService = new MonitoringService(env.DB, env.ANALYTICS);
+		
+		await monitoringService.logError('billing', 'scheduled_reset_failed', 
+			error instanceof Error ? error : new Error('Unknown error'), undefined, {
+			triggerType: 'scheduled_event',
+			timestamp: new Date().toISOString()
+		});
+		
+		return new Response(JSON.stringify({
+			success: false,
+			error: error instanceof Error ? error.message : "Unknown error",
+			timestamp: new Date().toISOString()
+		}), {
+			status: 500,
+			headers: { 'Content-Type': 'application/json' }
+		});
+	}
+}
+
+export default {
+	fetch: app.fetch,
+	scheduled
+};

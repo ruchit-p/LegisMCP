@@ -34,5 +34,10 @@
 			"binding": "CONGRESS_KEYS",
 			"id": "569f409f4e204cc09968956060c2fc24"
 		}
-	]
+	],
+	"triggers": {
+		"crons": [
+			"0 0 * * *"
+		]
+	}
 }

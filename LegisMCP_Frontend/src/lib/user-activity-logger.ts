@@ -372,6 +372,7 @@ export class UserActivityLogger {
   public logPageView(previousPage?: string, loadTime?: number, isInitialLoad: boolean = false) {
     const event: PageViewEvent = {
       ...this.createBaseEvent('page_view'),
+      event_type: 'page_view',
       data: {
         previous_page: previousPage,
         load_time: loadTime,
@@ -387,6 +388,7 @@ export class UserActivityLogger {
   public logButtonClick(buttonText: string, buttonId?: string, buttonClass?: string, section: string = 'unknown') {
     const event: ButtonClickEvent = {
       ...this.createBaseEvent('button_click'),
+      event_type: 'button_click',
       data: {
         button_text: buttonText,
         button_id: buttonId,
@@ -411,6 +413,7 @@ export class UserActivityLogger {
   ) {
     const event: FormInteractionEvent = {
       ...this.createBaseEvent('form_interaction'),
+      event_type: 'form_interaction',
       data: {
         form_id: formId,
         form_name: formName,
@@ -429,6 +432,7 @@ export class UserActivityLogger {
   public logSearchQuery(query: string, searchType: 'bills' | 'members' | 'general', filtersApplied?: Record<string, string>, resultsCount?: number) {
     const event: SearchQueryEvent = {
       ...this.createBaseEvent('search_query'),
+      event_type: 'search_query',
       data: {
         query,
         filters_applied: filtersApplied,
@@ -445,6 +449,7 @@ export class UserActivityLogger {
   public logSessionStart() {
     const event: SessionEvent = {
       ...this.createBaseEvent('session_start'),
+      event_type: 'session_start',
       data: {}
     };
     this.queueEvent(event);
@@ -457,6 +462,7 @@ export class UserActivityLogger {
     const sessionDuration = Date.now() - (this.pageStartTime || Date.now());
     const event: SessionEvent = {
       ...this.createBaseEvent('session_end'),
+      event_type: 'session_end',
       data: {
         session_duration: sessionDuration,
         pages_visited: 1, // Could be enhanced to track across pages
@@ -472,6 +478,7 @@ export class UserActivityLogger {
   public logError(errorType: 'javascript' | 'network' | 'api' | 'user_input', errorMessage: string, errorStack?: string, severity: 'low' | 'medium' | 'high' | 'critical' = 'medium', component?: string) {
     const event: ErrorEvent = {
       ...this.createBaseEvent('error'),
+      event_type: 'error',
       data: {
         error_type: errorType,
         error_message: errorMessage,
@@ -489,6 +496,7 @@ export class UserActivityLogger {
   public logFeatureUsage(featureName: string, featureCategory: string, usageDuration?: number, interactionCount?: number, success: boolean = true) {
     const event: FeatureUsageEvent = {
       ...this.createBaseEvent('feature_usage'),
+      event_type: 'feature_usage',
       data: {
         feature_name: featureName,
         feature_category: featureCategory,
@@ -506,6 +514,7 @@ export class UserActivityLogger {
   public logNavigation(navigationType: 'click' | 'back' | 'forward' | 'external', destination: string, sourceElement?: string) {
     const event: NavigationEvent = {
       ...this.createBaseEvent('navigation'),
+      event_type: 'navigation',
       data: {
         navigation_type: navigationType,
         destination,
@@ -521,6 +530,7 @@ export class UserActivityLogger {
   public logScrollDepth(maxDepthPercent: number) {
     const event: ScrollDepthEvent = {
       ...this.createBaseEvent('scroll_depth'),
+      event_type: 'scroll_depth',
       data: {
         max_depth_percent: maxDepthPercent,
         page_height: document.body.scrollHeight,
@@ -537,6 +547,7 @@ export class UserActivityLogger {
     const timeSpent = Date.now() - this.pageStartTime;
     const event: TimeOnPageEvent = {
       ...this.createBaseEvent('time_on_page'),
+      event_type: 'time_on_page',
       data: {
         time_spent: timeSpent,
         active_time: timeSpent, // Could be enhanced with actual active time tracking

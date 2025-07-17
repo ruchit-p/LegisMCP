@@ -2,6 +2,7 @@ import { D1Database } from '@cloudflare/workers-types';
 import type { Stripe } from 'stripe';
 import { UserService } from './user';
 import { PlansService } from './plans';
+import { BillingCycleService } from './billing-cycle';
 
 export interface StripeConfig {
   webhookSecret: string;
@@ -26,12 +27,13 @@ export class StripeService {
   async handleWebhookEvent(event: any): Promise<void> {
     const userService = new UserService(this.db);
     const plansService = new PlansService(this.db);
+    const billingCycleService = new BillingCycleService(this.db);
 
     switch (event.type) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        await this.handleSubscriptionUpdate(subscription, userService, plansService);
+        await this.handleSubscriptionUpdate(subscription, userService, plansService, billingCycleService);
         break;
       }
 
@@ -43,7 +45,7 @@ export class StripeService {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
-        await this.handleSuccessfulPayment(invoice, userService);
+        await this.handleSuccessfulPayment(invoice, userService, billingCycleService);
         break;
       }
 
@@ -67,7 +69,8 @@ export class StripeService {
   private async handleSubscriptionUpdate(
     subscription: any,
     userService: UserService,
-    plansService: PlansService
+    plansService: PlansService,
+    billingCycleService: BillingCycleService
   ): Promise<void> {
     const stripePriceId = subscription.items.data[0]?.price.id;
     const stripeCustomerId = subscription.customer;
@@ -98,6 +101,7 @@ export class StripeService {
         current_plan_id = ?,
         subscription_status = ?,
         stripe_subscription_id = ?,
+        mcp_calls_limit = ?,
         subscription_updated_at = CURRENT_TIMESTAMP,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
@@ -105,8 +109,17 @@ export class StripeService {
       plan.id,
       subscription.status,
       subscription.id,
+      plan.mcp_calls_limit,
       user.id
     ).run();
+
+    // Update billing cycle information
+    await billingCycleService.updateBillingCycle(user.id, {
+      stripeSubscriptionId: subscription.id,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      status: subscription.status
+    });
 
     console.log(`Updated subscription for user ${user.email} to plan ${plan.name}`);
   }
@@ -152,7 +165,8 @@ export class StripeService {
 
   private async handleSuccessfulPayment(
     invoice: any,
-    userService: UserService
+    userService: UserService,
+    billingCycleService: BillingCycleService
   ): Promise<void> {
     const stripeCustomerId = invoice.customer;
 
@@ -179,6 +193,20 @@ export class StripeService {
       invoice.amount_paid,
       invoice.currency
     ).run();
+
+    // Handle billing cycle and usage reset
+    if (invoice.lines && invoice.lines.data.length > 0) {
+      const periodStart = new Date(invoice.lines.data[0].period.start * 1000);
+      const periodEnd = new Date(invoice.lines.data[0].period.end * 1000);
+      
+      await billingCycleService.handleSuccessfulPayment(user.id, {
+        invoiceId: invoice.id,
+        periodStart,
+        periodEnd,
+        amount: invoice.amount_paid,
+        currency: invoice.currency
+      });
+    }
 
     console.log(`Recorded successful payment for user ${user.email}`);
   }

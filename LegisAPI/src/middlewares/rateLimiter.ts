@@ -12,12 +12,16 @@ interface RateLimitConfig {
 class RateLimitStore {
   private store = new Map<string, { count: number; resetTime: number; requests: number[] }>();
   private cleanupInterval: number | null = null;
+  private initialized = false;
 
-  constructor() {
-    // Cleanup old entries every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+  private initialize() {
+    if (!this.initialized) {
+      // Cleanup old entries every 5 minutes - only when first used
+      this.cleanupInterval = setInterval(() => {
+        this.cleanup();
+      }, 5 * 60 * 1000);
+      this.initialized = true;
+    }
   }
 
   private cleanup() {
@@ -30,6 +34,7 @@ class RateLimitStore {
   }
 
   increment(key: string, windowMs: number): { count: number; resetTime: number; remaining: number } {
+    this.initialize(); // Initialize on first use
     const now = Date.now();
     const data = this.store.get(key) || { count: 0, resetTime: now + windowMs, requests: [] };
     

@@ -14,7 +14,7 @@ export class AuthenticatedMCP extends McpAgent<Env, Record<string, never>, UserP
 
 	async init() {
 		// Register all tools using the modular system
-		registerTools(this.server, this.env, this.props);
+		await registerTools(this.server, this.env, this.props);
 	}
 }
 

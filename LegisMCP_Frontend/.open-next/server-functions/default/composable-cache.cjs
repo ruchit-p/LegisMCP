@@ -17,21 +17,21 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// ../../../.npm/_npx/b8f71965aba33be8/node_modules/@opennextjs/aws/dist/adapters/composable-cache.js
+// node_modules/@opennextjs/aws/dist/adapters/composable-cache.js
 var composable_cache_exports = {};
 __export(composable_cache_exports, {
   default: () => composable_cache_default
 });
 module.exports = __toCommonJS(composable_cache_exports);
 
-// ../../../.npm/_npx/b8f71965aba33be8/node_modules/@opennextjs/aws/dist/adapters/logger.js
+// node_modules/@opennextjs/aws/dist/adapters/logger.js
 function debug(...args) {
   if (globalThis.openNextDebug) {
     console.log(...args);
   }
 }
 
-// ../../../.npm/_npx/b8f71965aba33be8/node_modules/@opennextjs/aws/dist/utils/cache.js
+// node_modules/@opennextjs/aws/dist/utils/cache.js
 function getTagKey(tag) {
   if (typeof tag === "string") {
     return tag;
@@ -61,7 +61,7 @@ async function writeTags(tags) {
   await globalThis.tagCache.writeTags(tagsToWrite);
 }
 
-// ../../../.npm/_npx/b8f71965aba33be8/node_modules/@opennextjs/aws/dist/utils/stream.js
+// node_modules/@opennextjs/aws/dist/utils/stream.js
 var import_node_stream = require("node:stream");
 function fromReadableStream(stream, base64) {
   const reader = stream.getReader();
@@ -84,7 +84,7 @@ function toReadableStream(value, isBase64) {
   return import_node_stream.Readable.toWeb(import_node_stream.Readable.from(Buffer.from(value, isBase64 ? "base64" : "utf8")));
 }
 
-// ../../../.npm/_npx/b8f71965aba33be8/node_modules/@opennextjs/aws/dist/adapters/composable-cache.js
+// node_modules/@opennextjs/aws/dist/adapters/composable-cache.js
 var pendingWritePromiseMap = /* @__PURE__ */ new Map();
 var composable_cache_default = {
   async get(cacheKey) {

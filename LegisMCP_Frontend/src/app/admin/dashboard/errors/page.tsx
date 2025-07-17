@@ -2,51 +2,86 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { redirect } from 'next/navigation';
 import { DashboardLayout, Alert } from '@/components/admin/dashboard-layout';
 import { ErrorMonitoringDashboard } from '@/components/admin/error-monitoring-dashboard';
 import { useAnalytics } from '@/components/providers/analytics-provider';
+import { useAlertsService } from '@/lib/alerts-service';
+import { WithRoleCheck } from '@/components/auth/WithRoleCheck';
 
 export default function ErrorMonitoringDashboardPage() {
   const { user, isLoading } = useUser();
   const analytics = useAnalytics();
+  const { initializeService } = useAlertsService();
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [, setLoading] = useState(true);
 
-  // Load alerts on component mount
+  // Load alerts from database
   useEffect(() => {
-    // Mock alerts related to error monitoring
-    const mockAlerts: Alert[] = [
-      {
-        id: '1',
-        type: 'error',
-        title: 'Critical Error Spike',
-        message: 'Error rate has increased to 8.5% in the last 15 minutes',
-        timestamp: new Date(),
-        isRead: false,
-        priority: 'critical'
-      },
-      {
-        id: '2',
-        type: 'warning',
-        title: 'Database Connection Issues',
-        message: 'Multiple D1 database timeout errors detected',
-        timestamp: new Date(Date.now() - 600000), // 10 minutes ago
-        isRead: false,
-        priority: 'high'
-      },
-      {
-        id: '3',
-        type: 'info',
-        title: 'Error Rate Normalized',
-        message: 'Error rate has returned to baseline levels',
-        timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
-        isRead: true,
-        priority: 'low'
+    const loadAlerts = async () => {
+      if (!user || isLoading) return;
+      
+      try {
+        setLoading(true);
+        const service = await initializeService();
+        
+        // Fetch alerts from the database
+        const result = await service.getAlerts({
+          limit: 10,
+          resolved: false // Only show unresolved alerts
+        });
+        
+        // Transform database alerts to match component interface
+        const transformedAlerts: Alert[] = result.data.map(alert => ({
+          id: alert.id,
+          type: alert.alert_type,
+          title: alert.title,
+          message: alert.message,
+          timestamp: new Date(alert.created_at),
+          isRead: alert.is_read,
+          priority: alert.severity
+        }));
+        
+        setAlerts(transformedAlerts);
+      } catch (error) {
+        console.error('Failed to load alerts:', error);
+        // Fallback to mock data if API fails
+        const mockAlerts: Alert[] = [
+          {
+            id: '1',
+            type: 'error',
+            title: 'Critical Error Spike',
+            message: 'Error rate has increased to 8.5% in the last 15 minutes',
+            timestamp: new Date(),
+            isRead: false,
+            priority: 'critical'
+          },
+          {
+            id: '2',
+            type: 'warning',
+            title: 'Database Connection Issues',
+            message: 'Multiple D1 database timeout errors detected',
+            timestamp: new Date(Date.now() - 600000), // 10 minutes ago
+            isRead: false,
+            priority: 'high'
+          },
+          {
+            id: '3',
+            type: 'info',
+            title: 'Error Rate Normalized',
+            message: 'Error rate has returned to baseline levels',
+            timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
+            isRead: true,
+            priority: 'low'
+          }
+        ];
+        setAlerts(mockAlerts);
+      } finally {
+        setLoading(false);
       }
-    ];
-    
-    setAlerts(mockAlerts);
-  }, []);
+    };
+
+    loadAlerts();
+  }, [user, isLoading, initializeService]);
 
   // Track error monitoring dashboard access
   useEffect(() => {
@@ -56,64 +91,44 @@ export default function ErrorMonitoringDashboardPage() {
   }, [user, isLoading, analytics]);
 
   // Handle alert dismissal
-  const handleAlertDismiss = (alertId: string) => {
-    setAlerts(prevAlerts => 
-      prevAlerts.map(alert => 
-        alert.id === alertId 
-          ? { ...alert, isRead: true }
-          : alert
-      )
-    );
-    
-    analytics.logFeatureUsage('alert_dismissed', 'admin', true);
+  const handleAlertDismiss = async (alertId: string) => {
+    try {
+      const service = await initializeService();
+      await service.updateAlert(alertId, { is_read: true });
+      
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === alertId 
+            ? { ...alert, isRead: true }
+            : alert
+        )
+      );
+      
+      analytics.logFeatureUsage('alert_dismissed', 'admin', true);
+    } catch (error) {
+      console.error('Failed to dismiss alert:', error);
+      // Still update UI optimistically
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === alertId 
+            ? { ...alert, isRead: true }
+            : alert
+        )
+      );
+      analytics.logFeatureUsage('alert_dismissed', 'admin', true);
+    }
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (!user) {
-    redirect('/api/auth/login');
-  }
-
-  // Check admin access
-  const hasAdminAccess = user.email?.includes('@legismcp.com') || 
-                        user.nickname === 'admin' || 
-                        user.email === 'admin@example.com';
-
-  if (!hasAdminAccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-4">
-            You don&apos;t have permission to access the admin dashboard.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="text-primary hover:text-primary/80 underline"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <DashboardLayout
-      title="Error Monitoring"
-      description="Track and analyze errors across the platform"
-      alerts={alerts}
-      onAlertDismiss={handleAlertDismiss}
-    >
-      <ErrorMonitoringDashboard />
-    </DashboardLayout>
+    <WithRoleCheck requiredRole={['admin', 'super_admin']}>
+      <DashboardLayout
+        title="Error Monitoring"
+        description="Track and analyze errors across the platform"
+        alerts={alerts}
+        onAlertDismiss={handleAlertDismiss}
+      >
+        <ErrorMonitoringDashboard />
+      </DashboardLayout>
+    </WithRoleCheck>
   );
 }

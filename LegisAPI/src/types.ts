@@ -9,6 +9,7 @@ export interface Env {
     CONGRESS_KEYS: KVNamespace;
     STRIPE_WEBHOOK_SECRET: string;
     STRIPE_API_KEY: string;
+    CRON_TOKEN?: string;
 }
 
 export interface JWTPayload {

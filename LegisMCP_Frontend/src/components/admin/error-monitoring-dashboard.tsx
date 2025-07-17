@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAlertsService, AlertMetrics } from '@/lib/alerts-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,30 +17,23 @@ import {
   TrendingDown,
   RefreshCw,
   Search,
-  Filter,
-  Download,
   Shield,
   Zap,
-  Database,
   Globe,
   AlertCircle,
   CheckCircle,
   X
 } from 'lucide-react';
 import { 
-  LineChart, 
   Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
-  AreaChart,
   Area,
   ComposedChart
 } from 'recharts';
@@ -468,39 +462,91 @@ function ErrorAlertsTable({ alerts }: { alerts: ErrorAlert[] }) {
   );
 }
 
+// Transformation function to convert AlertMetrics to ErrorMetrics
+function transformAlertMetricsToErrorMetrics(alertMetrics: AlertMetrics): ErrorMetrics {
+  const { overview } = alertMetrics;
+  
+  return {
+    totalErrors: overview.total_alerts,
+    errorRate: overview.total_alerts > 0 ? (overview.unresolved_alerts / overview.total_alerts) * 100 : 0,
+    criticalErrors: overview.critical_alerts,
+    resolvedErrors: overview.total_alerts - overview.unresolved_alerts,
+    avgResolutionTime: 24.5, // Default value - could be calculated from actual data
+    errorFrequency: overview.alerts_last_hour,
+    affectedUsers: Math.floor(overview.total_alerts * 0.7), // Estimated based on alerts
+    systemUptime: 99.7 // Default value - could come from system metrics
+  };
+}
+
 // Main component
 export function ErrorMonitoringDashboard() {
+  const { initializeService } = useAlertsService();
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [metrics, setMetrics] = useState<ErrorMetrics>(mockErrorMetrics);
   const [events, setEvents] = useState<ErrorEvent[]>(mockErrorEvents);
-  const [trends, setTrends] = useState<ErrorTrend[]>(mockErrorTrends);
-  const [categories, setCategories] = useState<ErrorCategory[]>(mockErrorCategories);
-  const [alerts, setAlerts] = useState<ErrorAlert[]>(mockErrorAlerts);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('1h');
+  const [trends] = useState<ErrorTrend[]>(mockErrorTrends);
+  const [categories] = useState<ErrorCategory[]>(mockErrorCategories);
+  const [alerts] = useState<ErrorAlert[]>(mockErrorAlerts);
   const [selectedSeverity, setSelectedSeverity] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Refresh data
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // In real implementation, fetch from API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const service = await initializeService();
+      
+      // Fetch real metrics
+      const alertMetrics = await service.getAlertMetrics();
+      const transformedMetrics = transformAlertMetricsToErrorMetrics(alertMetrics);
+      setMetrics(transformedMetrics);
+      
+      // Fetch real error events
+      const errorEvents = await service.getErrorEvents({
+        limit: 20,
+        ...(selectedSeverity !== 'all' && { severity: selectedSeverity as 'low' | 'medium' | 'high' | 'critical' }),
+        ...(selectedStatus !== 'all' && { status: selectedStatus as 'open' | 'investigating' | 'resolved' }),
+      });
+      
+      // Transform error events to match component interface
+      const transformedEvents: ErrorEvent[] = errorEvents.map(event => ({
+        id: event.id,
+        timestamp: new Date(event.created_at),
+        type: event.event_type,
+        severity: event.severity,
+        message: event.message,
+        component: event.component,
+        endpoint: event.endpoint,
+        userId: event.user_id?.toString(),
+        userEmail: event.user_email,
+        count: event.error_count,
+        status: event.status,
+        assignedTo: event.assigned_to,
+        tags: event.tags?.split(',') || []
+      }));
+      
+      setEvents(transformedEvents);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to refresh data:', error);
+      // Keep using mock data if API fails
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedSeverity, selectedStatus, initializeService]);
+
+  // Initial load
+  useEffect(() => {
+    refreshData();
+  }, [selectedSeverity, selectedStatus, refreshData]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshData]);
 
   // Filter events based on search and filters
   const filteredEvents = events.filter(event => {

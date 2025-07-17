@@ -27,7 +27,7 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 0 0% 100%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
@@ -54,31 +54,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
   }
 }
 
-/* Mobile and tablet background override */
-@media (max-width: 1024px) {
-  body {
-    background-color: white !important;
-  }
-  
-  .bg-background {
-    background-color: white !important;
-  }
-  
-  /* Override gradient backgrounds in sections */
-  .bg-gradient-to-b {
-    background: white !important;
-  }
-  
-  /* Override muted backgrounds */
-  .bg-muted\/20,
-  .bg-muted\/50 {
-    background-color: white !important;
-  }
-}
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {

@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { StripeProvider } from '@/components/providers/stripe-provider'
 import { AnalyticsProvider } from '@/components/providers/analytics-provider'
+import { SmartRedirect } from '@/components/auth/SmartRedirect'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -59,9 +60,11 @@ export default function RootLayout({
           >
             <StripeProvider>
               <AnalyticsProvider>
-                <div className="min-h-screen bg-background lg:bg-background md:bg-white sm:bg-white bg-white">
-                  {children}
-                </div>
+                <SmartRedirect>
+                  <div className="min-h-screen bg-white">
+                    {children}
+                  </div>
+                </SmartRedirect>
                 <Toaster />
               </AnalyticsProvider>
             </StripeProvider>

@@ -23,7 +23,6 @@ import {
   Globe
 } from 'lucide-react';
 import { 
-  LineChart, 
   Line, 
   XAxis, 
   YAxis, 

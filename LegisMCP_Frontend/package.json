@@ -12,7 +12,8 @@
         "cf:build": "npx @opennextjs/cloudflare build",
         "cf:preview": "npm run cf:build && npx @opennextjs/cloudflare preview",
         "cf:deploy": "npm run cf:build && npx @opennextjs/cloudflare deploy",
-        "cf:dev": "wrangler dev"
+        "cf:dev": "wrangler dev",
+        "setup-admin": "tsx src/scripts/setup-admin.ts"
     },
     "dependencies": {
         "@auth0/nextjs-auth0": "^3.5.0",

@@ -19,9 +19,11 @@ import {
   CreditCard, 
   LogOut, 
   BarChart3,
-  Menu
+  Menu,
+  Shield
 } from 'lucide-react'
 import { useState } from 'react'
+import { useUserRole } from '@/hooks/useUserRole'
 
 
 const navigation = [
@@ -31,7 +33,11 @@ const navigation = [
 
 export function Header() {
   const { user, isLoading } = useUser()
+  const { isAdmin, isSuperAdmin } = useUserRole()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  
+  // Combine admin and super admin for simplicity
+  const isAdminUser = isAdmin || isSuperAdmin
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -76,6 +82,16 @@ export function Header() {
                         Dashboard
                       </Link>
                     </Button>
+                    
+                    {/* Admin Quick Actions */}
+                    {isAdminUser && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href="/admin/dashboard">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin
+                        </Link>
+                      </Button>
+                    )}
                   </div>
 
                   {/* User Dropdown */}
@@ -130,6 +146,20 @@ export function Header() {
                           Billing
                         </Link>
                       </DropdownMenuItem>
+                      
+                      {/* Admin Section */}
+                      {isAdminUser && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/dashboard">
+                              <Shield className="mr-2 h-4 w-4" />
+                              Admin Dashboard
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <a href="/api/auth/logout">
@@ -190,6 +220,16 @@ export function Header() {
                   >
                     Dashboard
                   </Link>
+                  {/* Admin Links for Mobile */}
+                  {isAdminUser && (
+                    <Link
+                      href="/admin/dashboard"
+                      className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                 </div>
               </>
             )}
