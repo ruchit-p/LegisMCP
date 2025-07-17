@@ -228,3 +228,9 @@ export function Component({ prop1, prop2 }: ComponentProps) {
   // Implementation
 }
 ```
+
+## Development Memory
+
+- Always use `cd` with double quotes or backticks to handle directories with spaces or special characters
+- When changing directories, verify the path is correct by printing the current directory with `pwd`
+- Use tab completion or escape spaces in directory names to ensure accurate navigation
