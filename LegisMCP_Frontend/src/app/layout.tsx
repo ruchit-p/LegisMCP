@@ -5,6 +5,7 @@ import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { StripeProvider } from '@/components/providers/stripe-provider'
+import { AnalyticsProvider } from '@/components/providers/analytics-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -57,10 +58,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <StripeProvider>
-              <div className="min-h-screen bg-background">
-                {children}
-              </div>
-              <Toaster />
+              <AnalyticsProvider>
+                <div className="min-h-screen bg-background">
+                  {children}
+                </div>
+                <Toaster />
+              </AnalyticsProvider>
             </StripeProvider>
           </ThemeProvider>
         </UserProvider>

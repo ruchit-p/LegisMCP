@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useUser } from '@auth0/nextjs-auth0/client';
+import { useFormTracking } from '@/components/providers/analytics-provider';
 
 export function EnterpriseContactForm() {
   const router = useRouter();
@@ -16,6 +17,11 @@ export function EnterpriseContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Form tracking
+  const formTracking = useFormTracking('enterprise-contact-form', 'Enterprise Contact Form');
+  const formStartTime = useRef<number>(Date.now());
+  const fieldFocusTimes = useRef<Record<string, number>>({});
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -31,6 +37,9 @@ export function EnterpriseContactForm() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    // Track form submission
+    formTracking.trackFormSubmit();
 
     try {
       const response = await fetch('/api/contact/enterprise', {
@@ -59,6 +68,38 @@ export function EnterpriseContactForm() {
     }
   };
 
+  // Track form abandonment when component unmounts
+  useEffect(() => {
+    return () => {
+      if (!isSuccess && !isSubmitting) {
+        formTracking.trackFormAbandon();
+      }
+    };
+  }, [isSuccess, isSubmitting, formTracking]);
+
+  // Helper function to track field interactions
+  const handleFieldFocus = (fieldName: string) => {
+    fieldFocusTimes.current[fieldName] = Date.now();
+    formTracking.trackFieldInteraction(fieldName, 'focus');
+  };
+
+  const handleFieldBlur = (fieldName: string) => {
+    const focusTime = fieldFocusTimes.current[fieldName];
+    if (focusTime) {
+      const timeSpent = Date.now() - focusTime;
+      formTracking.trackFieldInteraction(fieldName, 'blur');
+      // Track time spent on field if it was more than 1 second
+      if (timeSpent > 1000) {
+        console.log(`Time spent on ${fieldName}: ${timeSpent}ms`);
+      }
+    }
+  };
+
+  const handleFieldChange = (fieldName: string, value: string) => {
+    formTracking.trackFieldInteraction(fieldName, 'change');
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+  };
+
   if (isSuccess) {
     return (
       <div className="text-center py-12">
@@ -83,7 +124,9 @@ export function EnterpriseContactForm() {
             id="name"
             required
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => handleFieldChange('name', e.target.value)}
+            onFocus={() => handleFieldFocus('name')}
+            onBlur={() => handleFieldBlur('name')}
             placeholder="John Doe"
           />
         </div>
@@ -95,7 +138,9 @@ export function EnterpriseContactForm() {
             type="email"
             required
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => handleFieldChange('email', e.target.value)}
+            onFocus={() => handleFieldFocus('email')}
+            onBlur={() => handleFieldBlur('email')}
             placeholder="john@company.com"
           />
         </div>
@@ -106,7 +151,9 @@ export function EnterpriseContactForm() {
             id="company"
             required
             value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+            onChange={(e) => handleFieldChange('company', e.target.value)}
+            onFocus={() => handleFieldFocus('company')}
+            onBlur={() => handleFieldBlur('company')}
             placeholder="Acme Corporation"
           />
         </div>
@@ -117,7 +164,9 @@ export function EnterpriseContactForm() {
             id="phone"
             type="tel"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) => handleFieldChange('phone', e.target.value)}
+            onFocus={() => handleFieldFocus('phone')}
+            onBlur={() => handleFieldBlur('phone')}
             placeholder="+1 (555) 123-4567"
           />
         </div>
@@ -128,9 +177,16 @@ export function EnterpriseContactForm() {
         <Select 
           required
           value={formData.expectedVolume}
-          onValueChange={(value) => setFormData({ ...formData, expectedVolume: value })}
+          onValueChange={(value) => {
+            handleFieldChange('expectedVolume', value);
+            formTracking.trackFieldInteraction('expectedVolume', 'change');
+          }}
         >
-          <SelectTrigger id="expectedVolume">
+          <SelectTrigger 
+            id="expectedVolume"
+            onFocus={() => handleFieldFocus('expectedVolume')}
+            onBlur={() => handleFieldBlur('expectedVolume')}
+          >
             <SelectValue placeholder="Select expected volume" />
           </SelectTrigger>
           <SelectContent>
@@ -150,7 +206,9 @@ export function EnterpriseContactForm() {
           required
           rows={4}
           value={formData.useCase}
-          onChange={(e) => setFormData({ ...formData, useCase: e.target.value })}
+          onChange={(e) => handleFieldChange('useCase', e.target.value)}
+          onFocus={() => handleFieldFocus('useCase')}
+          onBlur={() => handleFieldBlur('useCase')}
           placeholder="Describe how you plan to use the LegislativeMCP API..."
           className="resize-none"
         />
@@ -162,7 +220,9 @@ export function EnterpriseContactForm() {
           id="additionalNotes"
           rows={3}
           value={formData.additionalNotes}
-          onChange={(e) => setFormData({ ...formData, additionalNotes: e.target.value })}
+          onChange={(e) => handleFieldChange('additionalNotes', e.target.value)}
+          onFocus={() => handleFieldFocus('additionalNotes')}
+          onBlur={() => handleFieldBlur('additionalNotes')}
           placeholder="Any specific requirements or questions?"
           className="resize-none"
         />

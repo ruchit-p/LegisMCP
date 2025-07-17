@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import type { JWTHeaderParameters } from "jose";
 import { jwt, requireScope } from "./middlewares/jwt";
 import { analytics } from "./middlewares/analytics";
+import { rateLimiters } from "./middlewares/rateLimiter";
 import { CongressServiceV2 } from "./services/congress-v2";
 import { UserService } from "./services/user";
 import { ApiKeyService } from "./services/apikey";
@@ -12,6 +13,7 @@ import { configRoutes } from "./routes/config";
 import { adminRoutes } from "./routes/admin";
 import { webhookRoutes } from "./routes/webhook";
 import { mcpRoutes } from "./routes/mcp";
+import { analyticsRoutes } from "./routes/analytics";
 
 const app = new Hono<{
 	Bindings: Env;
@@ -23,6 +25,9 @@ const app = new Hono<{
 }>();
 
 app.use("*", cors());
+
+// Apply general rate limiting to all routes
+app.use("*", rateLimiters.general);
 
 // Health check (no auth required)
 app.get("/api/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
@@ -43,6 +48,9 @@ app.use("/api/*", async (c, next) => {
 		auth0_audience: c.env.AUTH0_AUDIENCE
 	})(c, next);
 });
+
+// Apply authenticated rate limiting (higher limits for authenticated users)
+app.use("/api/*", rateLimiters.authenticated);
 
 app.post("/api/users/register", async (c) => {
 	const claims = c.var.jwtPayload as JWTPayload;
@@ -410,6 +418,9 @@ app.route('/api/admin', adminRoutes);
 
 // MCP routes (authenticated users)
 app.route('/api/mcp', mcpRoutes);
+
+// Analytics routes (authenticated users, some admin-only)
+app.route('/api/analytics', analyticsRoutes);
 
 app.onError((err, c) => {
 	console.error("Error details:", err);

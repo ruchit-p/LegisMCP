@@ -81,7 +81,7 @@ wrangler d1 execute legis-db --file=./schema.sql
 ### Frontend (.env.local)
 ```bash
 AUTH0_SECRET='<generated-secret>'
-AUTH0_BASE_URL='http://localhost:3000'
+APP_BASE_URL='http://localhost:3000'
 AUTH0_ISSUER_BASE_URL='https://<tenant>.auth0.com'
 AUTH0_CLIENT_ID='<client-id>'
 AUTH0_CLIENT_SECRET='<client-secret>'

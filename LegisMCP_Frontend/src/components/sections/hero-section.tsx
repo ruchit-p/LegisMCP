@@ -3,8 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Zap, Code, Database, Brain } from 'lucide-react'
 import Link from 'next/link'
+import { useAnalytics } from '@/components/providers/analytics-provider'
 
 export function HeroSection() {
+  const analytics = useAnalytics();
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/20 py-24 sm:py-32">
       <div className="container relative">
@@ -52,14 +54,29 @@ export function HeroSection() {
 
           {/* CTA buttons */}
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8" asChild>
-              <a href="/api/auth/signup">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8" 
+              asChild
+            >
+              <a 
+                href="/api/auth/signup"
+                onClick={() => analytics.logButtonClick('Start Free Trial', 'hero-cta-primary', 'bg-primary hover:bg-primary/90 text-primary-foreground px-8', 'hero')}
+              >
                 Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
-            <Button variant="outline" size="lg" className="px-8" asChild>
-              <Link href="#features">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="px-8" 
+              asChild
+            >
+              <Link 
+                href="#features"
+                onClick={() => analytics.logButtonClick('View Features', 'hero-cta-secondary', 'outline px-8', 'hero')}
+              >
                 View Features
               </Link>
             </Button>

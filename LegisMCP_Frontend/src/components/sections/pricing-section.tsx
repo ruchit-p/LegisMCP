@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/stripe-config';
+import { useAnalytics } from '@/components/providers/analytics-provider';
 
 const tiers = [
   {
@@ -97,10 +98,20 @@ export function PricingSection() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { user } = useUser();
   const router = useRouter();
+  const analytics = useAnalytics();
 
   const handlePlanSelect = async (planId: string) => {
+    // Track plan selection
+    analytics.logButtonClick(
+      `Select ${planId} plan`,
+      `pricing-${planId}-button`,
+      'w-full h-11 text-sm font-semibold rounded-xl',
+      'pricing'
+    );
+    
     // Handle enterprise plan differently
     if (planId === 'enterprise') {
+      analytics.logFeatureUsage('enterprise_contact', 'pricing', true);
       router.push('/contact/enterprise');
       return;
     }
@@ -109,9 +120,11 @@ export function PricingSection() {
     if (planId === 'free') {
       if (!user) {
         // Redirect to signup for free plan
+        analytics.logFeatureUsage('free_signup', 'pricing', true);
         router.push('/api/auth/login?screen_hint=signup');
       } else {
         // User already has account, redirect to dashboard
+        analytics.logFeatureUsage('free_dashboard', 'pricing', true);
         router.push('/dashboard');
       }
       return;
@@ -119,6 +132,7 @@ export function PricingSection() {
 
     if (!user) {
       // Redirect to login if not authenticated
+      analytics.logFeatureUsage('plan_login_required', 'pricing', true);
       router.push('/api/auth/login?screen_hint=signup');
       return;
     }
@@ -177,7 +191,10 @@ export function PricingSection() {
           <div className="relative flex bg-muted/50 backdrop-blur-sm rounded-2xl p-2 border border-border/50">
             <div className="flex items-center space-x-1">
               <button
-                onClick={() => setBillingFrequency('monthly')}
+                onClick={() => {
+                  setBillingFrequency('monthly');
+                  analytics.logButtonClick('Monthly Billing', 'billing-monthly', 'billing-frequency-toggle', 'pricing');
+                }}
                 className={`relative px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
                   billingFrequency === 'monthly'
                     ? 'bg-background text-foreground shadow-lg shadow-primary/20 border border-border'
@@ -187,7 +204,10 @@ export function PricingSection() {
                 Monthly
               </button>
               <button
-                onClick={() => setBillingFrequency('yearly')}
+                onClick={() => {
+                  setBillingFrequency('yearly');
+                  analytics.logButtonClick('Yearly Billing', 'billing-yearly', 'billing-frequency-toggle', 'pricing');
+                }}
                 className={`relative px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center gap-2 ${
                   billingFrequency === 'yearly'
                     ? 'bg-background text-foreground shadow-lg shadow-primary/20 border border-border'

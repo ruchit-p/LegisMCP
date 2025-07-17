@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { UserProps } from "../types.js";
+import { validateUserAuth, createAuthErrorResponse, createUsageLimitErrorResponse } from "../middlewares/authValidation.js";
 
 // Import comprehensive tool implementations
 import { 
@@ -67,6 +68,30 @@ import {
 } from "./subresource/subresourceTool.js";
 
 /**
+ * Wrapper function to add authentication validation to all tools
+ */
+async function withAuthValidation(
+  toolHandler: (args: any, apiBaseUrl: string, accessToken: string) => Promise<any>,
+  args: any,
+  env: any,
+  props: UserProps
+) {
+  // Validate user authentication and usage limits
+  const authResult = await validateUserAuth(props, env.API_BASE_URL);
+  
+  if (!authResult.isAuthenticated) {
+    return createAuthErrorResponse(authResult.error || "Authentication failed");
+  }
+  
+  if (!authResult.hasUsageLeft) {
+    return createUsageLimitErrorResponse(authResult.user);
+  }
+  
+  // User is authenticated and has usage left, proceed with tool execution
+  return toolHandler(args, env.API_BASE_URL, props.tokenSet.accessToken);
+}
+
+/**
  * Register all MCP tools with the server
  * @param server - The MCP server instance
  * @param env - Environment variables
@@ -80,18 +105,7 @@ export function registerTools(server: McpServer, env: any, props: UserProps) {
     BILL_ANALYSIS_DESC,
     BILL_ANALYSIS_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleBillAnalysis(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleBillAnalysis, args, env, props);
     }
   );
 
@@ -101,18 +115,7 @@ export function registerTools(server: McpServer, env: any, props: UserProps) {
     LIST_RECENT_BILLS_DESC,
     LIST_RECENT_BILLS_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleListRecentBills(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleListRecentBills, args, env, props);
     }
   );
 
@@ -122,18 +125,7 @@ export function registerTools(server: McpServer, env: any, props: UserProps) {
     GET_BILL_DESC,
     GET_BILL_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleGetBill(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleGetBill, args, env, props);
     }
   );
 
@@ -149,18 +141,7 @@ export function registerTools(server: McpServer, env: any, props: UserProps) {
       includeAnalysis: z.boolean().optional().default(true).describe("Whether to include detailed analysis")
     },
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleTrendingBills(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleTrendingBills, args, env, props);
     }
   );
 
@@ -184,18 +165,7 @@ Automatically searches, fetches related data, and provides insights.`,
       includeDetails: z.boolean().optional().default(true).describe("Whether to include detailed sub-resource data")
     },
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleCongressQuery(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleCongressQuery, args, env, props);
     }
   );
 
@@ -205,18 +175,7 @@ Automatically searches, fetches related data, and provides insights.`,
     MEMBER_DETAILS_DESC,
     MEMBER_DETAILS_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleMemberDetails(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleMemberDetails, args, env, props);
     }
   );
 
@@ -225,18 +184,7 @@ Automatically searches, fetches related data, and provides insights.`,
     MEMBER_SEARCH_DESC,
     MEMBER_SEARCH_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleMemberSearch(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleMemberSearch, args, env, props);
     }
   );
 
@@ -246,11 +194,15 @@ Automatically searches, fetches related data, and provides insights.`,
     UNIVERSAL_SEARCH_DESC,
     UNIVERSAL_SEARCH_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
+      // Validate user auth first
+      const authResult = await validateUserAuth(props, env.API_BASE_URL);
+      
+      if (!authResult.isAuthenticated) {
+        return createAuthErrorResponse(authResult.error || "Authentication failed");
+      }
+      
+      if (!authResult.hasUsageLeft) {
+        return createUsageLimitErrorResponse(authResult.user);
       }
 
       // Universal search requires implementation in LegisAPI backend
@@ -273,27 +225,47 @@ Automatically searches, fetches related data, and provides insights.`,
     SUBRESOURCE_DESC,
     SUBRESOURCE_PARAMS,
     async (args: any) => {
-      if (!props?.tokenSet?.accessToken) {
-        return {
-          content: [{ text: "No access token available. Please authenticate first.", type: "text" }],
-          isError: true
-        };
-      }
-
-      return handleSubresource(
-        args,
-        env.API_BASE_URL,
-        props.tokenSet.accessToken
-      );
+      return withAuthValidation(handleSubresource, args, env, props);
     }
   );
 
   // Keep essential utility tools
   
   // whoami tool
-  server.tool("whoami", "Get the current user's details", {}, async () => ({
-    content: [{ text: JSON.stringify(props.claims, null, 2), type: "text" }],
-  }));
+  server.tool("whoami", "Get the current user's details", {}, async () => {
+    try {
+      // Get enhanced user info from API
+      const response = await fetch(`${env.API_BASE_URL}/api/me`, {
+        headers: {
+          Authorization: `Bearer ${props.tokenSet.accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json() as any;
+        return {
+          content: [{ 
+            text: JSON.stringify({
+              ...props.claims,
+              plan: userData.plan,
+              apiCallsCount: userData.api_calls_count,
+              apiCallsLimit: userData.api_calls_limit,
+              usageRemaining: userData.api_calls_limit === -1 ? 'Unlimited' : 
+                             (userData.api_calls_limit - userData.api_calls_count)
+            }, null, 2), 
+            type: "text" 
+          }],
+        };
+      }
+    } catch (error) {
+      // Fall back to basic claims if API call fails
+      console.warn('Failed to get enhanced user info:', error);
+    }
+    
+    return {
+      content: [{ text: JSON.stringify(props.claims, null, 2), type: "text" }],
+    };
+  });
 
   // get-usage-stats tool (keep for API monitoring)
   server.tool(
@@ -303,13 +275,16 @@ Automatically searches, fetches related data, and provides insights.`,
       days: z.number().default(30).describe("Number of days to look back"),
     },
     async (args: any) => {
+      // Validate user auth first
+      const authResult = await validateUserAuth(props, env.API_BASE_URL);
+      
+      if (!authResult.isAuthenticated) {
+        return createAuthErrorResponse(authResult.error || "Authentication failed");
+      }
+
       try {
         const params = new URLSearchParams();
         if (args.days) params.append("days", args.days.toString());
-
-        if (!props?.tokenSet?.accessToken) {
-          throw new Error("No access token available. Please authenticate first.");
-        }
 
         const response = await fetch(`${env.API_BASE_URL}/api/usage?${params}`, {
           headers: {

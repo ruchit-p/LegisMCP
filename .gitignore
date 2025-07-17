@@ -43,6 +43,7 @@ desktop.ini
 out/
 build/
 dist/
+.open-next/
 
 # Next.js cache
 .next/
