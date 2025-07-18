@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useAuth0 } from '@/hooks/use-auth0'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,7 +16,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 
 const Header = () => {
-  const { user, isAuthenticated, isLoading, login, logout } = useAuth0()
+  const { data: session, status } = useSession()
+  const user = session?.user
+  const isAuthenticated = !!session
+  const isLoading = status === 'loading'
 
   if (isLoading) {
     return (
@@ -24,7 +27,7 @@ const Header = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Image
-              src="/logo.png"
+              src="https://pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev/Legi%20USA%20Logo%20Black%20Transparent.png"
               alt="LegislativeMCP"
               width={32}
               height={32}
@@ -47,7 +50,7 @@ const Header = () => {
         <div className="flex items-center space-x-4">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/logo.png"
+              src="https://pub-c7deb7ea07f743c98e0e0e4aded1d7ae.r2.dev/Legi%20USA%20Logo%20Black%20Transparent.png"
               alt="LegislativeMCP"
               width={32}
               height={32}
@@ -58,15 +61,12 @@ const Header = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/features" className="text-gray-600 hover:text-gray-900">
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link href="#features" className="text-gray-600 hover:text-gray-900 font-medium">
             Features
           </Link>
-          <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
+          <Link href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium">
             Pricing
-          </Link>
-          <Link href="/docs" className="text-gray-600 hover:text-gray-900">
-            Docs
           </Link>
         </nav>
 
@@ -79,7 +79,7 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.picture} alt={user.name || user.email} />
+                      <AvatarImage src={user.image || ''} alt={user.name || user.email} />
                       <AvatarFallback>
                         {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </AvatarFallback>
@@ -116,7 +116,7 @@ const Header = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => logout()}
+                    onClick={() => signOut()}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
@@ -130,12 +130,12 @@ const Header = () => {
               <div className="flex items-center space-x-2">
                 <Button 
                   variant="ghost" 
-                  onClick={() => login()}
+                  onClick={() => signIn('auth0')}
                 >
                   Sign In
                 </Button>
                 <Button 
-                  onClick={() => login({ screen_hint: 'signup' })}
+                  onClick={() => signIn('auth0')}
                 >
                   Get Started
                 </Button>
