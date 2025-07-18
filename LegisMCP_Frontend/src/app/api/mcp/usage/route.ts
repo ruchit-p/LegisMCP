@@ -84,7 +84,7 @@ const getMCPUsageData = async (accessToken: string) => {
     
     return {
       plan: userData.plan_name || 'Free',
-      callsUsed: userData.api_calls_count || 0,
+      callsUsed: userData.mcp_calls_count || 0,
       callsLimit: isUnlimited ? Infinity : limit,
       isUnlimited,
       resetDate,

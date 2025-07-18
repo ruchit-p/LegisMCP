@@ -179,8 +179,8 @@ app.get("/api/user/profile", async (c) => {
 				p.mcp_calls_limit,
 				CASE 
 					WHEN p.mcp_calls_limit = -1 THEN 'Unlimited'
-					WHEN u.api_calls_count >= p.mcp_calls_limit THEN 'Limit Reached'
-					ELSE CAST(p.mcp_calls_limit - u.api_calls_count AS TEXT) || ' remaining'
+					WHEN u.mcp_calls_count >= p.mcp_calls_limit THEN 'Limit Reached'
+					ELSE CAST(p.mcp_calls_limit - u.mcp_calls_count AS TEXT) || ' remaining'
 				END as calls_remaining
 			FROM users u
 			LEFT JOIN plans p ON u.current_plan_id = p.id

@@ -202,6 +202,22 @@ mcpRoutes.post('/logs', async (c) => {
       throw new HTTPException(500, { message: 'Failed to create log entry' });
     }
 
+    // Increment user's MCP call count for successful calls only
+    if (status === 'success') {
+      try {
+        await c.env.DB.prepare(`
+          UPDATE users 
+          SET 
+            mcp_calls_count = mcp_calls_count + 1,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).bind(user.id).run();
+      } catch (updateError) {
+        console.error('Failed to update user MCP call count:', updateError);
+        // Don't fail the request if count update fails
+      }
+    }
+
     // Also track in Analytics Engine if available
     if (c.env.ANALYTICS) {
       c.env.ANALYTICS.writeDataPoint({
@@ -272,19 +288,19 @@ mcpRoutes.get('/usage-summary', async (c) => {
         plan_slug: userDetails.plan_slug,
         subscription_status: userDetails.subscription_status,
         subscription_period_end: userDetails.subscription_period_end,
-        api_calls_count: userDetails.api_calls_count,
+        mcp_calls_count: userDetails.mcp_calls_count,
         mcp_calls_limit: userDetails.mcp_calls_limit,
         calls_remaining: userDetails.calls_remaining,
         billing_frequency: userDetails.billing_frequency
       },
       usage: {
         currentPeriodCalls: periodUsage?.period_calls || 0,
-        totalCalls: userDetails.api_calls_count || 0,
+        totalCalls: userDetails.mcp_calls_count || 0,
         limit: userDetails.mcp_calls_limit === -1 ? Infinity : userDetails.mcp_calls_limit,
         isUnlimited: userDetails.mcp_calls_limit === -1,
         percentageUsed: userDetails.mcp_calls_limit === -1 
           ? 0 
-          : Math.round((userDetails.api_calls_count || 0) / userDetails.mcp_calls_limit * 100)
+          : Math.round((userDetails.mcp_calls_count || 0) / userDetails.mcp_calls_limit * 100)
       },
       billingPeriod: {
         start: periodStart.toISOString(),
