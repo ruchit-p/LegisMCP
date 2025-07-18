@@ -18,7 +18,7 @@ export async function GET() {
 
     // Forward request to Cloudflare Worker
     const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
-    const response = await fetch(`${workerUrl}/user/profile`, {
+    const response = await fetch(`${workerUrl}/me?check_billing_cycle=true`, {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
         'Content-Type': 'application/json'
@@ -32,18 +32,23 @@ export async function GET() {
 
     const userData = await response.json();
     
-    // Transform the subscription data for the frontend
-    const subscription = userData.subscription ? {
-      id: userData.subscription.id || 'unknown',
-      status: userData.subscription.status,
-      planName: userData.subscription.plan || 'Unknown',
-      billingFrequency: userData.subscription.billing_frequency || 'monthly',
-      currentPeriodStart: userData.subscription.current_period_start,
-      currentPeriodEnd: userData.subscription.current_period_end,
-      cancelAtPeriodEnd: userData.subscription.cancel_at_period_end || false,
-      amount: userData.subscription.amount || 0,
-      currency: userData.subscription.currency || 'usd'
-    } : null;
+    // Transform the user data to subscription format for the frontend
+    let subscription = null;
+    
+    // Check if user has a paid plan (not free)
+    if (userData.plan && userData.plan !== 'free') {
+      subscription = {
+        id: userData.sub || 'unknown', // Use Auth0 user ID as subscription ID
+        status: userData.plan === 'free' ? 'free' : 'active', // Assume active if not free
+        planName: userData.plan || 'Unknown',
+        billingFrequency: 'monthly', // Default to monthly
+        currentPeriodStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+        currentPeriodEnd: userData.billing_cycle_end || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        cancelAtPeriodEnd: false,
+        amount: 0, // We don't have amount info in /api/me
+        currency: 'usd'
+      };
+    }
 
     return NextResponse.json({
       subscription
