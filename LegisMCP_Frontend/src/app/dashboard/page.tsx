@@ -277,7 +277,19 @@ export default function DashboardPage() {
 
             {/* API Keys Tab */}
             <TabsContent value="keys" className="space-y-6">
-              <ApiKeyManager />
+              <ComingSoonFeature
+                title="API Key Management"
+                description="Generate and manage API keys for accessing the LegislativeMCP server API. Keep your keys secure and never share them publicly."
+                icon={<Key className="h-5 w-5" />}
+                showDetailedStats={true}
+              />
+              
+              <ComingSoonFeature
+                title="API Key Usage Instructions"
+                description="Step-by-step guide on how to authenticate with the LegislativeMCP server using your API key, including environment variable setup and MCP server configuration."
+                icon={<Shield className="h-5 w-5" />}
+                showDetailedStats={false}
+              />
             </TabsContent>
 
             {/* Usage Tab */}

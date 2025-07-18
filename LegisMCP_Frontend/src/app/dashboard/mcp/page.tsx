@@ -6,7 +6,8 @@ import { ConnectionForm } from '@/components/mcp/connection-form';
 import { ToolExplorer } from '@/components/mcp/tool-explorer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { ComingSoonFeature } from '@/components/ui/coming-soon-feature';
+import { Info, Key } from 'lucide-react';
 
 export default function McpPage() {
     const [client, setClient] = useState<McpClient | null>(null);
@@ -31,9 +32,17 @@ export default function McpPage() {
                 <Info className="h-4 w-4" />
                 <AlertDescription>
                     This page allows you to connect to your production MCP server deployed on Azure. 
-                    Use your API key from the dashboard and your Azure server URL to establish a connection.
+                    Once API keys are available, you'll be able to use them here for secure authentication.
                 </AlertDescription>
             </Alert>
+
+            {/* API Key Coming Soon Notice */}
+            <ComingSoonFeature
+                title="Secure API Key Authentication"
+                description="Connect to your MCP server using secure API keys instead of manual configuration. This will make the connection process much more streamlined and secure."
+                icon={<Key className="h-5 w-5" />}
+                showDetailedStats={true}
+            />
 
             {/* Connection Form */}
             <ConnectionForm onConnectionChange={handleConnectionChange} />

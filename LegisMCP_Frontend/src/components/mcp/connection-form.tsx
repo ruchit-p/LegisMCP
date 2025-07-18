@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ExternalLink, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, ExternalLink, CheckCircle, XCircle, AlertCircle, Key } from 'lucide-react';
 import { McpClient, McpClientOptions, McpClientState, validateConnectionString, parseConnectionString } from '@/lib/mcp-client';
 import { useToast } from '@/hooks/use-toast';
+import { ComingSoonFeature } from '@/components/ui/coming-soon-feature';
 
 // MARK: - Types and Interfaces
 
@@ -317,22 +318,36 @@ export function ConnectionForm({ onConnectionChange, className = '' }: Connectio
                     </div>
 
                     <div>
-                        <Label htmlFor="apiKey">API Key</Label>
-                        <Input
-                            id="apiKey"
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="cmcp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                            disabled={status.status === 'connected' || isLoading}
-                            className={errors.apiKey ? 'border-red-500' : ''}
+                        <ComingSoonFeature
+                            title="API Key Authentication"
+                            description="Secure API key authentication will replace manual credential entry. You'll be able to generate keys in your dashboard and use them here."
+                            icon={<Key className="h-4 w-4" />}
+                            className="mb-4"
                         />
-                        {errors.apiKey && (
-                            <p className="text-sm text-red-500 mt-1">{errors.apiKey}</p>
-                        )}
-                        <p className="text-sm text-gray-600 mt-1">
-                            Enter your API key from the dashboard
-                        </p>
+                        
+                        {/* Temporary fallback for current connections */}
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                <div>
+                                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                                        Temporary Manual Connection
+                                    </h4>
+                                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
+                                        For now, you can still connect manually using the server URL. API key authentication coming soon!
+                                    </p>
+                                    <Input
+                                        id="apiKey"
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        placeholder="Temporary manual key (optional)"
+                                        disabled={status.status === 'connected' || isLoading}
+                                        className="bg-white dark:bg-gray-800"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

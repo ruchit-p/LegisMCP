@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { jwtMiddleware } from '../middlewares/jwt';
-import { getDatabase } from '../services/auth-config';
+import { jwt } from '../middlewares/jwt';
+import { AuthConfigService } from '../services/auth-config';
 
 // MARK: - Types
 
@@ -27,9 +27,9 @@ const apiKeyFeedbackRouter = new Hono();
  * Get feedback statistics for API key feature
  * GET /api-key-feedback/stats
  */
-apiKeyFeedbackRouter.get('/stats', jwtMiddleware, async (c) => {
+apiKeyFeedbackRouter.get('/stats', jwt, async (c) => {
     try {
-        const db = getDatabase(c.env);
+        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {
@@ -89,9 +89,9 @@ apiKeyFeedbackRouter.get('/stats', jwtMiddleware, async (c) => {
  * Submit thumbs up/down feedback for API key feature
  * POST /api-key-feedback
  */
-apiKeyFeedbackRouter.post('/', jwtMiddleware, async (c) => {
+apiKeyFeedbackRouter.post('/', jwt, async (c) => {
     try {
-        const db = getDatabase(c.env);
+        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {
@@ -166,9 +166,9 @@ apiKeyFeedbackRouter.post('/', jwtMiddleware, async (c) => {
  * Get user's feedback (for admin purposes)
  * GET /api-key-feedback/user
  */
-apiKeyFeedbackRouter.get('/user', jwtMiddleware, async (c) => {
+apiKeyFeedbackRouter.get('/user', jwt, async (c) => {
     try {
-        const db = getDatabase(c.env);
+        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {

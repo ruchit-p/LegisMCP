@@ -42,7 +42,7 @@
   },
   "vars": {
     "AUTH0_DOMAIN": "your-tenant.us.auth0.com",
-    "AUTH0_CLIENT_ID": "68WG3c41CX95HR6Y1Zl8wNaHbQnxXiu7",
+    "AUTH0_CLIENT_ID": "4MuaK2em2SV3eu7aUqORrIv8EdfQ6q0S",
     "AUTH0_AUDIENCE": "urn:legis-api",
     "AUTH0_SCOPE": "openid email profile offline_access read:bills read:members read:votes read:committees",
     "API_BASE_URL": "https://api.example.com"
