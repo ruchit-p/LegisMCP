@@ -72,10 +72,15 @@ import {
  */
 async function withAuthValidation(
   toolHandler: (args: any, apiBaseUrl: string, accessToken: string) => Promise<any>,
+  toolName: string,
   args: any,
   env: any,
   props: UserProps
 ) {
+  const startTime = Date.now();
+  let toolResult: any;
+  let error: Error | null = null;
+
   // Validate user authentication and usage limits
   const authResult = await validateUserAuth(props, env.API_BASE_URL);
   
@@ -87,8 +92,77 @@ async function withAuthValidation(
     return createUsageLimitErrorResponse(authResult.user, env.FRONTEND_URL);
   }
   
-  // User is authenticated and has usage left, proceed with tool execution
-  return toolHandler(args, env.API_BASE_URL, props.tokenSet.accessToken);
+  try {
+    // User is authenticated and has usage left, proceed with tool execution
+    toolResult = await toolHandler(args, env.API_BASE_URL, props.tokenSet.accessToken);
+    
+    // Log successful tool usage to the backend
+    const responseTime = Date.now() - startTime;
+         await logToolUsage(
+       props.tokenSet.accessToken,
+       env.API_BASE_URL,
+       toolName,
+       args,
+       toolResult,
+       'success',
+       responseTime
+     );
+    
+    return toolResult;
+  } catch (err) {
+    error = err as Error;
+    const responseTime = Date.now() - startTime;
+    
+    // Log failed tool usage to the backend
+         await logToolUsage(
+       props.tokenSet.accessToken,
+       env.API_BASE_URL,
+       toolName,
+       args,
+       null,
+       'error',
+       responseTime,
+       error.message
+     );
+    
+    throw error;
+  }
+}
+
+/**
+ * Log tool usage to the backend MCP logs endpoint
+ */
+async function logToolUsage(
+  accessToken: string,
+  apiBaseUrl: string,
+  toolName: string,
+  requestData: any,
+  responseData: any,
+  status: 'success' | 'error' | 'timeout',
+  responseTimeMs: number,
+  errorMessage?: string
+) {
+  try {
+    await fetch(`${apiBaseUrl}/api/mcp/logs`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tool_name: toolName,
+        request_data: requestData,
+        response_data: responseData,
+        status,
+        response_time_ms: responseTimeMs,
+        error_message: errorMessage,
+        tokens_used: 0 // Could be calculated based on response size
+      })
+    });
+  } catch (logError) {
+    // Don't fail the tool execution if logging fails
+    console.error('Failed to log tool usage:', logError);
+  }
 }
 
 /**
@@ -143,7 +217,7 @@ export async function registerTools(server: McpServer, env: any, props: UserProp
     BILL_ANALYSIS_DESC,
     BILL_ANALYSIS_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleBillAnalysis, args, env, props);
+      return withAuthValidation(handleBillAnalysis, BILL_ANALYSIS_NAME, args, env, props);
     }
   );
 
@@ -153,7 +227,7 @@ export async function registerTools(server: McpServer, env: any, props: UserProp
     LIST_RECENT_BILLS_DESC,
     LIST_RECENT_BILLS_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleListRecentBills, args, env, props);
+      return withAuthValidation(handleListRecentBills, "list-recent-bills", args, env, props);
     }
   );
 
@@ -163,7 +237,7 @@ export async function registerTools(server: McpServer, env: any, props: UserProp
     GET_BILL_DESC,
     GET_BILL_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleGetBill, args, env, props);
+      return withAuthValidation(handleGetBill, "get-bill", args, env, props);
     }
   );
 
@@ -179,7 +253,7 @@ export async function registerTools(server: McpServer, env: any, props: UserProp
       includeAnalysis: z.boolean().optional().default(true).describe("Whether to include detailed analysis")
     },
     async (args: any) => {
-      return withAuthValidation(handleTrendingBills, args, env, props);
+      return withAuthValidation(handleTrendingBills, "trending-bills", args, env, props);
     }
   );
 
@@ -203,7 +277,7 @@ Automatically searches, fetches related data, and provides insights.`,
       includeDetails: z.boolean().optional().default(true).describe("Whether to include detailed sub-resource data")
     },
     async (args: any) => {
-      return withAuthValidation(handleCongressQuery, args, env, props);
+      return withAuthValidation(handleCongressQuery, "congress-query", args, env, props);
     }
   );
 
@@ -213,7 +287,7 @@ Automatically searches, fetches related data, and provides insights.`,
     MEMBER_DETAILS_DESC,
     MEMBER_DETAILS_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleMemberDetails, args, env, props);
+      return withAuthValidation(handleMemberDetails, "member-details", args, env, props);
     }
   );
 
@@ -222,7 +296,7 @@ Automatically searches, fetches related data, and provides insights.`,
     MEMBER_SEARCH_DESC,
     MEMBER_SEARCH_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleMemberSearch, args, env, props);
+      return withAuthValidation(handleMemberSearch, "member-search", args, env, props);
     }
   );
 
@@ -263,7 +337,7 @@ Automatically searches, fetches related data, and provides insights.`,
     SUBRESOURCE_DESC,
     SUBRESOURCE_PARAMS,
     async (args: any) => {
-      return withAuthValidation(handleSubresource, args, env, props);
+      return withAuthValidation(handleSubresource, "subresource", args, env, props);
     }
   );
 
