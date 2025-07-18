@@ -127,7 +127,7 @@ export function HeroSection() {
               <div className="font-mono text-sm">
                 <div className="text-gray-400 mb-2"># Connect to Legislative MCP Server</div>
                 <div className="text-blue-400">mcp_server:</div>
-                <div className="ml-4 text-yellow-300">url: <span className="text-green-300">&quot;https://api.example.com/mcp&quot;</span></div>
+                <div className="ml-4 text-yellow-300">url: <span className="text-green-300">&quot;https://mcp.example.com/mcp&quot;</span></div>
                 <div className="ml-4 text-yellow-300">tools: <span className="text-white">[</span><span className="text-green-300">&quot;search&quot;</span><span className="text-white">, </span><span className="text-green-300">&quot;analysis&quot;</span><span className="text-white">, </span><span className="text-green-300">&quot;member_info&quot;</span><span className="text-white">]</span></div>
                 <div className="text-gray-400 mt-2"># Your AI can now access Legislative data</div>
               </div>
