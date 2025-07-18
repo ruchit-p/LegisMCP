@@ -258,16 +258,6 @@ export default function DashboardPage() {
                     <BarChart3 className="h-4 w-4 mr-2" />
                     View Usage
                   </Button>
-                  <Button variant="outline" asChild>
-                    <a href="/docs" target="_blank" rel="noopener noreferrer">
-                      📚 Documentation
-                    </a>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <a href="/api-docs" target="_blank" rel="noopener noreferrer">
-                      🔧 API Reference
-                    </a>
-                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>

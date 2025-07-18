@@ -90,6 +90,24 @@ class Auth0ManagementClient {
 
         return response.json();
     }
+
+    async deleteUser(userId: string) {
+        const token = await this.getAccessToken();
+        
+        const response = await fetch(`https://${this.config.domain}/api/v2/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to delete user account');
+        }
+
+        return true;
+    }
 }
 
 const managementClient = new Auth0ManagementClient();
@@ -257,6 +275,91 @@ export async function PUT(request: NextRequest) {
         console.error('Failed to update user profile:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error', success: false },
+            { status: 500 }
+        );
+    }
+}
+
+/**
+ * DELETE /api/user/profile - Delete user account and all associated data
+ */
+export async function DELETE(request: NextRequest) {
+    try {
+        // Extract request metadata for audit logging
+        const userAgent = request.headers.get('user-agent') || 'Unknown';
+        const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'Unknown';
+        
+        // Get user session
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            const errorResponse = createAuth0ErrorResponse(Auth0Error.UNAUTHORIZED);
+            return NextResponse.json(errorResponse, { status: errorResponse.statusCode });
+        }
+
+        const userId = session.user.id;
+        const userEmail = session.user.email;
+
+        // Log the deletion attempt for audit purposes
+        console.log(`Account deletion initiated by user ${userEmail} (ID: ${userId}) from IP ${ip} with User-Agent: ${userAgent}`);
+
+        // TODO: Add additional cleanup steps before Auth0 deletion
+        // 1. Deactivate all API keys
+        // 2. Cancel active subscriptions
+        // 3. Clean up usage data (or mark as deleted)
+        // 4. Clean up any file uploads or user-specific data
+        
+        try {
+            // Cleanup API keys - make request to our API
+            await fetch(`${process.env.API_BASE_URL || 'https://api.example.com'}/v1/keys`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${session.accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            }).catch(error => {
+                console.warn('Failed to cleanup API keys:', error);
+                // Don't fail the deletion for this
+            });
+
+            // Cleanup subscription - make request to billing API
+            await fetch('/api/user/subscription', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).catch(error => {
+                console.warn('Failed to cleanup subscription:', error);
+                // Don't fail the deletion for this
+            });
+        } catch (cleanupError) {
+            console.warn('Some cleanup operations failed:', cleanupError);
+            // Continue with Auth0 deletion even if cleanup partially fails
+        }
+
+        // Delete the user from Auth0
+        await managementClient.deleteUser(userId);
+
+        // Log successful deletion
+        console.log(`Account successfully deleted for user ${userEmail} (ID: ${userId})`);
+
+        return NextResponse.json({ 
+            success: true,
+            message: 'Account deleted successfully'
+        });
+    } catch (error) {
+        console.error('Failed to delete user account:', error);
+        
+        // Log the error with user context for debugging
+        const session = await getServerSession(authOptions);
+        if (session?.user) {
+            console.error(`Account deletion failed for user ${session.user.email} (ID: ${session.user.id}):`, error);
+        }
+
+        return NextResponse.json(
+            { 
+                error: error instanceof Error ? error.message : 'Internal server error', 
+                success: false 
+            },
             { status: 500 }
         );
     }
