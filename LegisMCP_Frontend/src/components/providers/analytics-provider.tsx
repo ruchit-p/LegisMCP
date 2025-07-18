@@ -180,11 +180,17 @@ export function useAnalytics() {
   const { data: session } = useSession();
   
   return {
-    trackEvent: (event: string, properties?: Record<string, any>) => {
+    trackEvent: (event: string, properties?: Record<string, unknown>) => {
       console.log('Analytics event:', event, properties);
     },
     trackPageView: (page: string) => {
       console.log('Analytics page view:', page);
+    },
+    logFeatureUsage: (feature: string, category: string, success: boolean) => {
+      console.log('Feature usage:', feature, category, success);
+    },
+    logButtonClick: (buttonText: string, buttonId: string, section: string, page: string) => {
+      console.log('Button click:', buttonText, buttonId, section, page);
     },
     isEnabled: !!session,
   };
@@ -194,16 +200,22 @@ export function useAnalytics() {
  * Hook for form tracking analytics
  * Note: Currently returns stub implementation
  */
-export function useFormTracking() {
+export function useFormTracking(formId?: string) {
   return {
     trackFormStart: (formName: string) => {
       console.log('Form started:', formName);
     },
-    trackFormSubmit: (formName: string, success: boolean) => {
-      console.log('Form submitted:', formName, 'Success:', success);
+    trackFormSubmit: (formName?: string, success?: boolean) => {
+      console.log('Form submitted:', formName || formId, 'Success:', success);
     },
     trackFormError: (formName: string, error: string) => {
       console.log('Form error:', formName, error);
+    },
+    trackFormAbandon: () => {
+      console.log('Form abandoned:', formId);
+    },
+    trackFieldInteraction: (fieldName: string, action: string) => {
+      console.log('Field interaction:', fieldName, action);
     },
   };
 }
