@@ -13,7 +13,9 @@ const authOptions: NextAuthOptions = {
       issuer: process.env.AUTH0_ISSUER_BASE_URL!,
       authorization: {
         params: {
-          scope: 'openid email profile offline_access read:bills read:members read:votes read:committees'
+          scope: 'openid email profile offline_access read:bills read:members read:votes read:committees',
+          // Add the audience parameter to get a proper access token for your API
+          audience: process.env.AUTH0_AUDIENCE || 'https://api.example.com'
         }
       }
     })
@@ -27,6 +29,14 @@ const authOptions: NextAuthOptions = {
         token.refreshToken = account.refresh_token
         token.idToken = account.id_token
         token.expiresAt = account.expires_at
+        
+        // Debug logging (remove in production)
+        console.log('JWT Callback - Account tokens:', {
+          hasAccessToken: !!account.access_token,
+          hasRefreshToken: !!account.refresh_token,
+          expiresAt: account.expires_at,
+          tokenType: account.token_type
+        })
       }
       
       // Store user ID and email in token
@@ -49,6 +59,13 @@ const authOptions: NextAuthOptions = {
       session.user.id = token.auth0Id as string
       session.user.auth0Id = token.auth0Id as string
       
+      // Debug logging (remove in production)
+      console.log('Session Callback - Token availability:', {
+        hasAccessToken: !!session.accessToken,
+        hasRefreshToken: !!session.refreshToken,
+        userEmail: session.user.email
+      })
+      
       return session
     }
   },
@@ -58,6 +75,9 @@ const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
+  
+  // Add debug logging
+  debug: process.env.NODE_ENV === 'development',
   
   // Removed custom pages - using NextAuth.js default sign-in page
   // pages: {
