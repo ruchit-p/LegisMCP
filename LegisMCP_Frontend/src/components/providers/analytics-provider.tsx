@@ -180,16 +180,16 @@ export function useAnalytics() {
   const { data: session } = useSession();
   
   return {
-    trackEvent: (event: string, properties?: Record<string, unknown>) => {
+    trackEvent: (event: string, properties?: Record<string, unknown>): void => {
       console.log('Analytics event:', event, properties);
     },
-    trackPageView: (page: string) => {
+    trackPageView: (page: string): void => {
       console.log('Analytics page view:', page);
     },
-    logFeatureUsage: (feature: string, category: string, success: boolean) => {
+    logFeatureUsage: (feature: string, category: string, success: boolean): void => {
       console.log('Feature usage:', feature, category, success);
     },
-    logButtonClick: (buttonText: string, buttonId: string, section: string, page: string) => {
+    logButtonClick: (buttonText: string, buttonId: string, section: string, page: string): void => {
       console.log('Button click:', buttonText, buttonId, section, page);
     },
     isEnabled: !!session,
@@ -202,19 +202,19 @@ export function useAnalytics() {
  */
 export function useFormTracking(formId?: string) {
   return {
-    trackFormStart: (formName: string) => {
+    trackFormStart: (formName: string): void => {
       console.log('Form started:', formName);
     },
-    trackFormSubmit: (formName?: string, success?: boolean) => {
+    trackFormSubmit: (formName?: string, success?: boolean): void => {
       console.log('Form submitted:', formName || formId, 'Success:', success);
     },
-    trackFormError: (formName: string, error: string) => {
+    trackFormError: (formName: string, error: string): void => {
       console.log('Form error:', formName, error);
     },
-    trackFormAbandon: () => {
+    trackFormAbandon: (): void => {
       console.log('Form abandoned:', formId);
     },
-    trackFieldInteraction: (fieldName: string, action: string) => {
+    trackFieldInteraction: (fieldName: string, action: string): void => {
       console.log('Field interaction:', fieldName, action);
     },
   };
