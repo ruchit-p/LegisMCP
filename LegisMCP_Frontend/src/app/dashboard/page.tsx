@@ -15,6 +15,7 @@ import { ApiKeyManager } from '@/components/dashboard/api-key-manager';
 import { UsageTracker } from '@/components/dashboard/usage-tracker';
 import { SubscriptionManager } from '@/components/dashboard/subscription-manager';
 import { MCPUsageDisplay } from '@/components/dashboard/mcp-usage-display';
+import { ComingSoonFeature } from '@/components/ui/coming-soon-feature';
 import { 
   Key, 
   BarChart3, 
@@ -242,21 +243,28 @@ export default function DashboardPage() {
               </div>
 
               {/* Quick Actions */}
+              <ComingSoonFeature
+                title="Quick Actions - API Key Generation"
+                description="Generate and manage API keys with one click. This feature will make it super easy to get started with our API."
+                icon={<Key className="h-5 w-5" />}
+                showDetailedStats={true}
+              />
+              
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle>Available Actions</CardTitle>
                   <CardDescription>
-                    Common tasks to get you started with the API.
+                    Current actions you can take right now.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-4">
-                  <Button onClick={() => setActiveTab('keys')} className="flex items-center gap-2">
-                    <Key className="h-4 w-4" />
-                    Generate API Key
-                  </Button>
                   <Button variant="outline" onClick={() => setActiveTab('usage')}>
                     <BarChart3 className="h-4 w-4 mr-2" />
                     View Usage
+                  </Button>
+                  <Button variant="outline" onClick={() => setActiveTab('subscription')}>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Manage Subscription
                   </Button>
                 </CardContent>
               </Card>

@@ -17,6 +17,7 @@ import { analyticsRoutes } from "./routes/analytics";
 import alertsRoutes from "./routes/alerts";
 import { monitoringRoutes } from "./routes/monitoring";
 import { sessionRoutes } from "./routes/session";
+import { apiKeyFeedbackRouter } from "./routes/api-key-feedback";
 
 const app = new Hono<{
 	Bindings: Env;
@@ -500,6 +501,9 @@ app.route('/api/alerts', alertsRoutes);
 
 // Monitoring routes (admin-only)
 app.route('/api/monitoring', monitoringRoutes);
+
+// API Key Feedback routes (authenticated users)
+app.route('/api/api-key-feedback', apiKeyFeedbackRouter);
 
 app.onError((err, c) => {
 	console.error("Error details:", err);
