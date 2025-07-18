@@ -1,0 +1,15 @@
+{
+    "name": "legismcp-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "cd LegisMCP_Frontend && npm run build",
+        "dev": "cd LegisMCP_Frontend && npm run dev",
+        "start": "cd LegisMCP_Frontend && npm run start"
+    },
+    "workspaces": [
+        "LegisMCP_Frontend",
+        "LegisAPI",
+        "LegisMCP_Server"
+    ]
+}

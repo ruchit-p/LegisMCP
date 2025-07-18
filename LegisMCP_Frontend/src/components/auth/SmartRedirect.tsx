@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth0 } from '@/hooks/use-auth0';
+import { useSession } from 'next-auth/react';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface SmartRedirectProps {
@@ -10,7 +10,9 @@ interface SmartRedirectProps {
 }
 
 export function SmartRedirect({ children }: SmartRedirectProps) {
-  const { isAuthenticated, isLoading: authLoading } = useAuth0();
+  const { data: session, status } = useSession();
+  const isAuthenticated = !!session;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading } = useUserRole();
   const router = useRouter();
   const pathname = usePathname();
@@ -63,7 +65,9 @@ export function SmartRedirect({ children }: SmartRedirectProps) {
 
 // Hook to get redirect status for display purposes
 export function useRedirectStatus() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth0();
+  const { data: session, status } = useSession();
+  const isAuthenticated = !!session;
+  const authLoading = status === 'loading';
   const { role, isLoading: roleLoading } = useUserRole();
   const pathname = usePathname();
 
@@ -73,7 +77,7 @@ export function useRedirectStatus() {
   return {
     isLoading,
     shouldRedirect,
-    user: null, // Simplified for this hook
+    user: session?.user || null,
     role,
   };
 }

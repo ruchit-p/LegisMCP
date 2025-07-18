@@ -32,14 +32,19 @@ class Auth0ManagementClient {
     constructor() {
         this.config = {
             domain: process.env.NEXT_PUBLIC_AUTH0_DOMAIN!,
-            clientId: process.env.AUTH0_M2M_CLIENT_ID!,
-            clientSecret: process.env.AUTH0_M2M_CLIENT_SECRET!
+            clientId: process.env.AUTH0_M2M_CLIENT_ID || '',
+            clientSecret: process.env.AUTH0_M2M_CLIENT_SECRET || ''
         };
     }
 
     private async getAccessToken(): Promise<string> {
         if (this.accessToken && Date.now() < this.tokenExpiry) {
             return this.accessToken;
+        }
+
+        // Check if M2M credentials are available
+        if (!this.config.clientId || !this.config.clientSecret) {
+            throw new Error('Auth0 M2M credentials not configured. Profile updates are not available.');
         }
 
         const response = await fetch(`https://${this.config.domain}/oauth/token`, {
