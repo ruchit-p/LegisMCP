@@ -1,7 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { getUserProfile, createAuth0ErrorResponse, Auth0Error } from '@/lib/auth0';
+
+// MARK: - Auth0 Utility Functions
+enum Auth0Error {
+    UNAUTHORIZED = 'UNAUTHORIZED',
+    INVALID_TOKEN = 'INVALID_TOKEN',
+    USER_NOT_FOUND = 'USER_NOT_FOUND',
+    PROFILE_UPDATE_FAILED = 'PROFILE_UPDATE_FAILED'
+}
+
+interface Auth0ErrorResponse {
+    error: string;
+    message: string;
+    statusCode: number;
+}
+
+function createAuth0ErrorResponse(error: Auth0Error): Auth0ErrorResponse {
+    const errorMap: Record<Auth0Error, Auth0ErrorResponse> = {
+        [Auth0Error.UNAUTHORIZED]: {
+            error: 'unauthorized',
+            message: 'Authentication required',
+            statusCode: 401
+        },
+        [Auth0Error.INVALID_TOKEN]: {
+            error: 'invalid_token',
+            message: 'Invalid or expired token',
+            statusCode: 401
+        },
+        [Auth0Error.USER_NOT_FOUND]: {
+            error: 'user_not_found',
+            message: 'User not found',
+            statusCode: 404
+        },
+        [Auth0Error.PROFILE_UPDATE_FAILED]: {
+            error: 'profile_update_failed',
+            message: 'Failed to update user profile',
+            statusCode: 500
+        }
+    };
+    return errorMap[error];
+}
+
+async function getUserProfile() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return null;
+    }
+    
+    try {
+        const managementClient = new Auth0ManagementClient();
+        return await managementClient.getUser(session.user.id);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
+}
 
 // MARK: - Auth0 Management API Integration
 // Note: This would typically be in a backend service, but for demonstration
@@ -69,6 +123,24 @@ class Auth0ManagementClient {
         this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000; // 1 minute buffer
         
         return this.accessToken;
+    }
+
+    async getUser(userId: string) {
+        const token = await this.getAccessToken();
+        
+        const response = await fetch(`https://${this.config.domain}/api/v2/users/${encodeURIComponent(userId)}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get user: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
     }
 
     async updateUser(userId: string, updates: UserUpdates) {

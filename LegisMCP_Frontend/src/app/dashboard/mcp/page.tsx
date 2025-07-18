@@ -32,7 +32,7 @@ export default function McpPage() {
                 <Info className="h-4 w-4" />
                 <AlertDescription>
                     This page allows you to connect to your production MCP server deployed on Azure. 
-                    Once API keys are available, you'll be able to use them here for secure authentication.
+                    Once API keys are available, you&apos;ll be able to use them here for secure authentication.
                 </AlertDescription>
             </Alert>
 

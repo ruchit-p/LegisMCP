@@ -178,7 +178,7 @@ export function ComingSoonFeature({
                         <span className="font-medium">Feature In Development</span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                        We're working hard to bring you this feature. Let us know if you're excited about it!
+                        We&apos;re working hard to bring you this feature. Let us know if you&apos;re excited about it!
                     </p>
 
                     {/* Feedback Buttons */}

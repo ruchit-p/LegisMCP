@@ -11,7 +11,6 @@ import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ApiKeyManager } from '@/components/dashboard/api-key-manager';
 import { UsageTracker } from '@/components/dashboard/usage-tracker';
 import { SubscriptionManager } from '@/components/dashboard/subscription-manager';
 import { MCPUsageDisplay } from '@/components/dashboard/mcp-usage-display';
