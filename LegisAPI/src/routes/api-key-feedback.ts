@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { jwt } from '../middlewares/jwt';
-import { AuthConfigService } from '../services/auth-config';
+import { UserService } from '../services/user';
+import type { Env, JWTPayload } from '../types';
 
 // MARK: - Types
 
@@ -10,191 +11,168 @@ interface ThumbsUpRequest {
     feedback_message?: string;
 }
 
-interface FeedbackStatsResponse {
+interface FeedbackStats {
     total_feedback: number;
-    total_thumbs_up: number;
-    total_thumbs_down: number;
-    thumbs_up_percentage: number;
-    user_has_voted: boolean;
-    user_vote?: boolean;
+    positive_feedback: number;
+    negative_feedback: number;
+    positive_percentage: number;
+    recent_feedback: Array<{
+        id: number;
+        thumbs_up: boolean;
+        feedback_message: string | null;
+        created_at: string;
+        user_email: string | null;
+    }>;
 }
 
-// MARK: - API Key Feedback Router
+const apiKeyFeedbackRouter = new Hono<{
+    Bindings: Env;
+    Variables: {
+        jwtPayload?: JWTPayload;
+        user?: any;
+    };
+}>();
 
-const apiKeyFeedbackRouter = new Hono();
+// Apply JWT middleware to all routes
+apiKeyFeedbackRouter.use('/*', jwt());
+
+// User middleware - converts JWT payload to user data
+apiKeyFeedbackRouter.use('/*', async (c, next) => {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    if (payload?.sub) {
+        const userService = new UserService(c.env.DB);
+        const user = await userService.getUserByAuth0Id(payload.sub);
+        if (user) {
+            c.set('user', user);
+        }
+    }
+    await next();
+});
 
 /**
- * Get feedback statistics for API key feature
  * GET /api-key-feedback/stats
  */
-apiKeyFeedbackRouter.get('/stats', jwt, async (c) => {
+apiKeyFeedbackRouter.get('/stats', async (c) => {
     try {
-        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {
-            throw new HTTPException(401, { message: 'User not authenticated' });
+            throw new HTTPException(401, { message: 'User not found' });
         }
 
-        // Get overall feedback statistics
-        const statsQuery = `
-            SELECT 
-                total_feedback,
-                total_thumbs_up,
-                total_thumbs_down,
-                thumbs_up_percentage
-            FROM api_key_feedback_stats
-        `;
-        
-        const stats = await db.prepare(statsQuery).first() || {
-            total_feedback: 0,
-            total_thumbs_up: 0,
-            total_thumbs_down: 0,
-            thumbs_up_percentage: 0
+        // Get overall feedback stats
+        const totalResult = await c.env.DB.prepare(`
+            SELECT COUNT(*) as total_feedback,
+                   SUM(CASE WHEN thumbs_up = 1 THEN 1 ELSE 0 END) as positive_feedback
+            FROM api_key_feedback
+        `).first();
+
+        const total = totalResult?.total_feedback as number || 0;
+        const positive = totalResult?.positive_feedback as number || 0;
+        const negative = total - positive;
+        const positivePercentage = total > 0 ? Math.round((positive / total) * 100) : 0;
+
+        // Get recent feedback with user email
+        const recentFeedback = await c.env.DB.prepare(`
+            SELECT akf.id, akf.thumbs_up, akf.feedback_message, akf.created_at, u.email as user_email
+            FROM api_key_feedback akf
+            LEFT JOIN users u ON akf.user_id = u.id
+            ORDER BY akf.created_at DESC
+            LIMIT 10
+        `).all();
+
+        const stats: FeedbackStats = {
+            total_feedback: total,
+            positive_feedback: positive,
+            negative_feedback: negative,
+            positive_percentage: positivePercentage,
+            recent_feedback: recentFeedback.results as any[]
         };
 
-        // Check if current user has voted
-        const userVoteQuery = `
-            SELECT thumbs_up 
-            FROM api_key_feedback 
-            WHERE user_id = ?
-        `;
-        
-        const userVote = await db.prepare(userVoteQuery).bind(user.id).first();
-
-        const response: FeedbackStatsResponse = {
-            ...stats,
-            user_has_voted: !!userVote,
-            user_vote: userVote?.thumbs_up
-        };
-
-        return c.json({
-            success: true,
-            data: response
-        });
+        return c.json(stats);
     } catch (error) {
-        console.error('Error fetching API key feedback stats:', error);
-        
+        console.error('Error fetching feedback stats:', error);
         if (error instanceof HTTPException) {
             throw error;
         }
-        
-        throw new HTTPException(500, { 
-            message: 'Failed to fetch feedback statistics' 
-        });
+        throw new HTTPException(500, { message: 'Failed to fetch feedback stats' });
     }
 });
 
 /**
- * Submit thumbs up/down feedback for API key feature
  * POST /api-key-feedback
  */
-apiKeyFeedbackRouter.post('/', jwt, async (c) => {
+apiKeyFeedbackRouter.post('/', async (c) => {
     try {
-        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {
-            throw new HTTPException(401, { message: 'User not authenticated' });
+            throw new HTTPException(401, { message: 'User not found' });
         }
 
-        const body = await c.req.json<ThumbsUpRequest>();
+        const body = await c.req.json() as ThumbsUpRequest;
         
-        // Validate request body
         if (typeof body.thumbs_up !== 'boolean') {
-            throw new HTTPException(400, { 
-                message: 'Invalid request: thumbs_up must be a boolean' 
-            });
+            throw new HTTPException(400, { message: 'thumbs_up field is required and must be boolean' });
         }
 
-        // Check if user has already voted
-        const existingFeedback = await db.prepare(`
-            SELECT id FROM api_key_feedback WHERE user_id = ?
-        `).bind(user.id).first();
-
-        if (existingFeedback) {
-            throw new HTTPException(409, { 
-                message: 'You have already provided feedback for this feature' 
-            });
-        }
-
-        // Insert new feedback
-        const insertQuery = `
-            INSERT INTO api_key_feedback (user_id, thumbs_up, feedback_message)
-            VALUES (?, ?, ?)
-        `;
-        
-        await db.prepare(insertQuery).bind(
+        // Insert feedback
+        const result = await c.env.DB.prepare(`
+            INSERT INTO api_key_feedback (user_id, thumbs_up, feedback_message, created_at)
+            VALUES (?, ?, ?, datetime('now'))
+        `).bind(
             user.id,
-            body.thumbs_up,
+            body.thumbs_up ? 1 : 0,
             body.feedback_message || null
         ).run();
 
-        // Get updated statistics
-        const updatedStats = await db.prepare(`
-            SELECT 
-                total_feedback,
-                total_thumbs_up,
-                total_thumbs_down,
-                thumbs_up_percentage
-            FROM api_key_feedback_stats
-        `).first();
+        if (!result.success) {
+            throw new HTTPException(500, { message: 'Failed to save feedback' });
+        }
 
-        return c.json({
-            success: true,
-            message: 'Feedback recorded successfully',
-            data: {
-                ...updatedStats,
-                user_has_voted: true,
-                user_vote: body.thumbs_up
-            }
+        return c.json({ 
+            message: 'Feedback saved successfully',
+            feedback_id: result.meta.last_row_id 
         });
     } catch (error) {
-        console.error('Error submitting API key feedback:', error);
-        
+        console.error('Error saving feedback:', error);
         if (error instanceof HTTPException) {
             throw error;
         }
-        
-        throw new HTTPException(500, { 
-            message: 'Failed to submit feedback' 
-        });
+        throw new HTTPException(500, { message: 'Failed to save feedback' });
     }
 });
 
 /**
- * Get user's feedback (for admin purposes)
  * GET /api-key-feedback/user
  */
-apiKeyFeedbackRouter.get('/user', jwt, async (c) => {
+apiKeyFeedbackRouter.get('/user', async (c) => {
     try {
-        const db = AuthConfigService.getDatabase(c.env);
         const user = c.get('user');
         
         if (!user?.id) {
-            throw new HTTPException(401, { message: 'User not authenticated' });
+            throw new HTTPException(401, { message: 'User not found' });
         }
 
-        const userFeedback = await db.prepare(`
-            SELECT thumbs_up, feedback_message, created_at, updated_at
-            FROM api_key_feedback 
+        // Get user's feedback history
+        const userFeedback = await c.env.DB.prepare(`
+            SELECT id, thumbs_up, feedback_message, created_at
+            FROM api_key_feedback
             WHERE user_id = ?
-        `).bind(user.id).first();
+            ORDER BY created_at DESC
+            LIMIT 20
+        `).bind(user.id).all();
 
         return c.json({
-            success: true,
-            data: userFeedback || null
+            user_id: user.id,
+            feedback_history: userFeedback.results
         });
     } catch (error) {
         console.error('Error fetching user feedback:', error);
-        
         if (error instanceof HTTPException) {
             throw error;
         }
-        
-        throw new HTTPException(500, { 
-            message: 'Failed to fetch user feedback' 
-        });
+        throw new HTTPException(500, { message: 'Failed to fetch user feedback' });
     }
 });
 
