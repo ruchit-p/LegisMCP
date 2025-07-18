@@ -288,35 +288,58 @@ async function handlePaymentFailed(invoice: StripeInvoice) {
  */
 async function updateUserSubscription(auth0UserId: string, subscriptionData: SubscriptionUpdateData) {
   try {
-          const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
+    const workerUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com') + '/api';
     
-    // Get M2M token for Auth0 Management API
-    const tokenResponse = await fetch(`${process.env.AUTH0_ISSUER_BASE_URL}/oauth/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: process.env.AUTH0_M2M_CLIENT_ID,
-        client_secret: process.env.AUTH0_M2M_CLIENT_SECRET,
-        audience: `${process.env.AUTH0_ISSUER_BASE_URL}/api/v2/`,
-        grant_type: 'client_credentials',
-      }),
-    });
+    // Derive the Auth0 issuer URL from the domain
+    const auth0Domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+    const auth0IssuerUrl = auth0Domain ? `https://${auth0Domain}` : 'https://your-tenant.us.auth0.com';
+    
+    // Check if M2M credentials are available (optional for client-side only setups)
+    const m2mClientId = process.env.AUTH0_M2M_CLIENT_ID;
+    const m2mClientSecret = process.env.AUTH0_M2M_CLIENT_SECRET;
+    
+    let authToken: string | null = null;
+    
+    // Try to get M2M token if credentials are available
+    if (m2mClientId && m2mClientSecret) {
+      try {
+        const tokenResponse = await fetch(`${auth0IssuerUrl}/oauth/token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            client_id: m2mClientId,
+            client_secret: m2mClientSecret,
+            audience: `${auth0IssuerUrl}/api/v2/`,
+            grant_type: 'client_credentials',
+          }),
+        });
 
-    if (!tokenResponse.ok) {
-      throw new Error('Failed to get M2M token');
+        if (tokenResponse.ok) {
+          const { access_token } = await tokenResponse.json();
+          authToken = access_token;
+        } else {
+          console.warn('Failed to get M2M token, proceeding without Auth0 Management API token');
+        }
+      } catch (error) {
+        console.warn('M2M token request failed:', error);
+      }
     }
 
-    const { access_token } = await tokenResponse.json();
-
     // Update user in backend worker
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add authorization header if we have a token
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const updateResponse = await fetch(`${workerUrl}/webhooks/stripe/subscription`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${access_token}`,
-      },
+      headers,
       body: JSON.stringify({
         auth0_user_id: auth0UserId,
         subscription: subscriptionData,

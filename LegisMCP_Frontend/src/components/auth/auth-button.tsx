@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useAuth0 } from '@/hooks/use-auth0';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { LogIn, LogOut, User, UserPlus } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -15,9 +15,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 // MARK: - Auth Button Component
 /**
  * Authentication button that shows login/logout based on auth state
+ * Uses NextAuth.js for authentication
  */
 export function AuthButton() {
-  const { isAuthenticated, isLoading, login, logout, user } = useAuth0();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = !!session;
+  const isLoading = status === 'loading';
 
   if (isLoading) {
     return (
@@ -30,7 +34,7 @@ export function AuthButton() {
 
   if (!isAuthenticated) {
     return (
-      <Button onClick={() => login()} variant="outline">
+      <Button onClick={() => signIn('auth0')} variant="outline">
         <LogIn className="w-4 h-4 mr-2" />
         Login
       </Button>
@@ -42,7 +46,7 @@ export function AuthButton() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
-            <AvatarImage src={user?.picture} alt={user?.name || 'User'} />
+            <AvatarImage src={user?.image || ''} alt={user?.name || 'User'} />
             <AvatarFallback>
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </AvatarFallback>
@@ -59,7 +63,7 @@ export function AuthButton() {
           </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => logout()}>
+        <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="w-4 h-4 mr-2" />
           Logout
         </DropdownMenuItem>
@@ -71,13 +75,23 @@ export function AuthButton() {
 // MARK: - Login Button Component
 /**
  * Simple login button component
+ * Uses NextAuth.js signIn with Auth0 provider
  */
 export function LoginButton({ returnTo }: { returnTo?: string }) {
-  const { login, isLoading } = useAuth0();
+  const { status } = useSession();
+  const isLoading = status === 'loading';
+
+  const handleLogin = () => {
+    // NextAuth.js handles the redirect after login automatically
+    // You can pass a callbackUrl if needed
+    signIn('auth0', { 
+      callbackUrl: returnTo || window.location.origin + '/dashboard' 
+    });
+  };
 
   return (
     <Button 
-      onClick={() => login(returnTo)} 
+      onClick={handleLogin} 
       disabled={isLoading}
       className="w-full"
     >
@@ -87,22 +101,32 @@ export function LoginButton({ returnTo }: { returnTo?: string }) {
   );
 }
 
-// MARK: - Logout Button Component
+// MARK: - Signup Button Component
 /**
- * Simple logout button component
+ * Simple signup button component
+ * Uses NextAuth.js signIn with screen_hint parameter for signup
  */
-export function LogoutButton() {
-  const { logout, isLoading } = useAuth0();
+export function SignupButton({ returnTo }: { returnTo?: string }) {
+  const { status } = useSession();
+  const isLoading = status === 'loading';
+
+  const handleSignup = () => {
+    // Use Auth0 screen_hint parameter to show signup form
+    signIn('auth0', { 
+      callbackUrl: returnTo || window.location.origin + '/dashboard',
+      // Note: screen_hint parameter handling depends on Auth0 provider configuration
+    });
+  };
 
   return (
     <Button 
-      onClick={() => logout()} 
+      onClick={handleSignup} 
       disabled={isLoading}
-      variant="outline"
+      variant="default"
       className="w-full"
     >
-      <LogOut className="w-4 h-4 mr-2" />
-      {isLoading ? 'Loading...' : 'Logout'}
+      <UserPlus className="w-4 h-4 mr-2" />
+      {isLoading ? 'Loading...' : 'Sign Up'}
     </Button>
   );
 }
@@ -110,9 +134,13 @@ export function LogoutButton() {
 // MARK: - User Profile Display Component
 /**
  * Component to display user profile information
+ * Uses NextAuth.js session data
  */
 export function UserProfile() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = !!session;
+  const isLoading = status === 'loading';
 
   if (isLoading) {
     return (
@@ -130,7 +158,7 @@ export function UserProfile() {
   return (
     <div className="flex items-center gap-2">
       <Avatar className="w-8 h-8">
-        <AvatarImage src={user.picture} alt={user.name || 'User'} />
+        <AvatarImage src={user.image || ''} alt={user.name || 'User'} />
         <AvatarFallback>
           {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
         </AvatarFallback>

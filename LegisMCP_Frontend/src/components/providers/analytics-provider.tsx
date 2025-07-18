@@ -1,286 +1,172 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
-import { useSession } from 'next-auth/react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { getUserActivityLogger } from '@/lib/user-activity-logger';
+import { useEffect, useRef } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { getUserActivityLogger } from '@/lib/user-activity-logger'
 
-// Analytics context interface
-interface AnalyticsContextType {
-  logButtonClick: (buttonText: string, buttonId?: string, buttonClass?: string, section?: string) => void;
-  logFormInteraction: (formId: string, formName: string, interactionType: 'focus' | 'blur' | 'change' | 'submit' | 'abandon', fieldName?: string) => void;
-  logSearchQuery: (query: string, searchType: 'bills' | 'members' | 'general', filters?: Record<string, string>, resultsCount?: number) => void;
-  logFeatureUsage: (featureName: string, featureCategory: string, success?: boolean) => void;
-  logError: (errorType: 'javascript' | 'network' | 'api' | 'user_input', errorMessage: string, severity?: 'low' | 'medium' | 'high' | 'critical') => void;
-}
-
-// Create analytics context
-const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
-
-// Custom hook to use analytics
-export const useAnalytics = () => {
-  const context = useContext(AnalyticsContext);
-  if (!context) {
-    throw new Error('useAnalytics must be used within an AnalyticsProvider');
-  }
-  return context;
-};
-
-// Analytics provider component
+// MARK: - Analytics Provider Props
 interface AnalyticsProviderProps {
-  children: ReactNode;
+  children: React.ReactNode
 }
 
+// MARK: - Analytics Provider Component
+/**
+ * Analytics Provider that tracks user activity and navigation
+ * Integrates with NextAuth.js for user authentication state
+ */
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   const { data: session, status } = useSession();
   const user = session?.user;
+  const isAuthenticated = !!session;
   const isLoading = status === 'loading';
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
   // Only initialize logger in browser environment
   const logger = typeof window !== 'undefined' ? getUserActivityLogger() : null;
-  
-  // Track previous page for navigation analytics
-  const previousPathRef = useRef<string | null>(null);
-  const pageStartTimeRef = useRef<number>(Date.now());
+
+  // Refs for tracking navigation and timing
   const isInitialLoadRef = useRef(true);
+  const previousPathRef = useRef<string>('');
+  const pageStartTimeRef = useRef<number>(Date.now());
 
-  // Initialize analytics when user loads
+  // MARK: - Set Access Token for Authentication
+  // Set access token in logger when user is authenticated
   useEffect(() => {
-    if (!isLoading && user) {
-      // Set access token from user session
-      // Note: In a real implementation, you'd need to get the access token
-      // This is a placeholder - you'd typically get this from your auth context
-      console.log('Analytics: User authenticated, setting up tracking');
-      
-      // You might need to fetch the access token from your auth endpoint
-      // For now, we'll proceed without it for anonymous tracking
-    }
-  }, [user, isLoading]);
+    if (!logger || isLoading) return;
 
-  // Track page navigation
-  useEffect(() => {
-    const currentPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-    
-    // Don't track the initial load as navigation
-    if (isInitialLoadRef.current) {
-      isInitialLoadRef.current = false;
-      logger?.logPageView(undefined, undefined, true);
-      console.log('Analytics: Initial page load tracked:', currentPath);
-    } else {
-      // Track page navigation
-      const previousPath = previousPathRef.current;
-      
-      if (previousPath && previousPath !== currentPath) {
-        // Log time on previous page
-        const timeOnPreviousPage = Date.now() - pageStartTimeRef.current;
-        console.log('Analytics: Time on previous page:', timeOnPreviousPage, 'ms');
-        
-        // Log navigation event
-        logger?.logNavigation('click', currentPath, previousPath);
-        
-        // Log new page view
-        logger?.logPageView(previousPath, undefined, false);
-        
-        console.log('Analytics: Navigation tracked:', previousPath, '->', currentPath);
-      }
-    }
-    
-    // Update refs for next navigation
-    previousPathRef.current = currentPath;
-    pageStartTimeRef.current = Date.now();
-  }, [pathname, searchParams, logger]);
-
-  // Track page unload/visibility changes
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      const timeOnPage = Date.now() - pageStartTimeRef.current;
-      logger?.logTimeOnPage();
-      console.log('Analytics: Session ending, time on page:', timeOnPage, 'ms');
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // User switched away from tab
-        const timeOnPage = Date.now() - pageStartTimeRef.current;
-        logger?.logTimeOnPage();
-        console.log('Analytics: Tab hidden, time on page:', timeOnPage, 'ms');
+    const setupAuthentication = async () => {
+      if (isAuthenticated && user && session?.accessToken) {
+        try {
+          logger.setAccessToken(session.accessToken);
+          logger.setEnabled(true);
+          console.log('Analytics: Access token set for user:', user.email);
+        } catch (error) {
+          console.error('Analytics: Failed to set access token:', error);
+          // Disable analytics if we can't set a token
+          logger.setEnabled(false);
+        }
       } else {
-        // User came back to tab
-        pageStartTimeRef.current = Date.now();
-        console.log('Analytics: Tab visible again');
+        // Clear token and disable logging for unauthenticated users
+        logger.setAccessToken('');
+        logger.setEnabled(false);
+        console.log('Analytics: Disabled for unauthenticated user');
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    setupAuthentication();
+  }, [isAuthenticated, user, logger, isLoading, session?.accessToken]);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [logger]);
-
-  // Track performance metrics
+  // MARK: - Page View Tracking
   useEffect(() => {
-    // Track page load performance
-    if (typeof window !== 'undefined' && 'performance' in window) {
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (entry.entryType === 'navigation') {
-            const navEntry = entry as PerformanceNavigationTiming;
-            const loadTime = navEntry.loadEventEnd - navEntry.loadEventStart;
-            
-            if (loadTime > 0) {
-              console.log('Analytics: Page load time:', loadTime, 'ms');
-              // You could log this as a performance metric
-            }
-          }
-        }
-      });
-      
-      observer.observe({ entryTypes: ['navigation'] });
-      
-      return () => observer.disconnect();
-    }
-  }, []);
+    if (!logger || isLoading) return;
 
-  // Context value with helper methods
-  const contextValue: AnalyticsContextType = {
-    logButtonClick: (buttonText: string, buttonId?: string, buttonClass?: string, section?: string) => {
-      logger?.logButtonClick(buttonText, buttonId, buttonClass, section);
-      console.log('Analytics: Button click tracked:', buttonText, 'in section:', section);
-    },
+    const currentPath = pathname;
+    const currentSearchParams = searchParams?.toString() || '';
+    const fullPath = currentSearchParams ? `${currentPath}?${currentSearchParams}` : currentPath;
 
-    logFormInteraction: (
-      formId: string,
-      formName: string,
-      interactionType: 'focus' | 'blur' | 'change' | 'submit' | 'abandon',
-      fieldName?: string
-    ) => {
-      logger?.logFormInteraction(formId, formName, interactionType, fieldName);
-      console.log('Analytics: Form interaction tracked:', formName, interactionType, fieldName);
-    },
-
-    logSearchQuery: (
-      query: string,
-      searchType: 'bills' | 'members' | 'general',
-      filters?: Record<string, string>,
-      resultsCount?: number
-    ) => {
-      logger?.logSearchQuery(query, searchType, filters, resultsCount);
-      console.log('Analytics: Search query tracked:', query, 'type:', searchType, 'results:', resultsCount);
-    },
-
-    logFeatureUsage: (featureName: string, featureCategory: string, success: boolean = true) => {
-      logger?.logFeatureUsage(featureName, featureCategory, undefined, undefined, success);
-      console.log('Analytics: Feature usage tracked:', featureName, 'category:', featureCategory, 'success:', success);
-    },
-
-    logError: (
-      errorType: 'javascript' | 'network' | 'api' | 'user_input',
-      errorMessage: string,
-      severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
-    ) => {
-      logger?.logError(errorType, errorMessage, undefined, severity);
-      console.log('Analytics: Error tracked:', errorType, errorMessage, 'severity:', severity);
-    }
-  };
-
-  return (
-    <AnalyticsContext.Provider value={contextValue}>
-      {children}
-    </AnalyticsContext.Provider>
-  );
-}
-
-// Higher-order component for automatic button click tracking
-export function withAnalytics<T extends object>(
-  Component: React.ComponentType<T>,
-  componentName: string,
-  section: string = 'unknown'
-) {
-  return function AnalyticsWrapper(props: T) {
-    const analytics = useAnalytics();
-    
-    // Add onClick handler if component accepts it
-    const enhancedProps = {
-      ...props,
-      onClick: (event: React.MouseEvent<HTMLElement>) => {
-        // Call original onClick if it exists
-        if ('onClick' in props && typeof props.onClick === 'function') {
-          (props.onClick as (event: React.MouseEvent<HTMLElement>) => void)(event);
-        }
+    // Track page view for authenticated users only
+    if (isAuthenticated && user) {
+      // Calculate time spent on previous page
+      if (!isInitialLoadRef.current && previousPathRef.current) {
+        const timeSpent = Date.now() - pageStartTimeRef.current;
         
-        // Track the click
-        const target = event.currentTarget;
-        const buttonText = target.textContent || target.getAttribute('aria-label') || componentName;
-        const buttonId = target.id;
-        const buttonClass = target.className;
-        
-        analytics.logButtonClick(buttonText, buttonId, buttonClass, section);
+        try {
+          logger.logPageView(previousPathRef.current, timeSpent, false);
+        } catch (error) {
+          console.error('Analytics: Failed to log page view for previous page:', error);
+        }
+      }
+
+      // Log current page view (without time spent for new page)
+      try {
+        logger.logPageView(fullPath, undefined, isInitialLoadRef.current);
+      } catch (error) {
+        console.error('Analytics: Failed to log current page view:', error);
+      }
+
+      // Update refs for next navigation
+      previousPathRef.current = fullPath;
+      pageStartTimeRef.current = Date.now();
+      isInitialLoadRef.current = false;
+    }
+  }, [pathname, searchParams, isAuthenticated, user, logger, isLoading]);
+
+  // MARK: - Session Events Tracking
+  useEffect(() => {
+    if (!logger || isLoading) return;
+
+    // Track login events
+    if (isAuthenticated && user) {
+      try {
+        logger.logSessionStart();
+        console.log('Analytics: Session started for user:', user.email);
+      } catch (error) {
+        console.error('Analytics: Failed to log session start:', error);
+      }
+    }
+  }, [isAuthenticated, user, logger, isLoading]);
+
+  // MARK: - Cleanup on Unmount
+  useEffect(() => {
+    return () => {
+      // Log final page view with time spent when component unmounts
+      if (logger && isAuthenticated && previousPathRef.current) {
+        const timeSpent = Date.now() - pageStartTimeRef.current;
+        try {
+          logger.logPageView(previousPathRef.current, timeSpent, false);
+        } catch (error) {
+          console.error('Analytics: Failed to log final page view:', error);
+        }
       }
     };
-    
-    return <Component {...enhancedProps} />;
-  };
+  }, [logger, isAuthenticated]);
+
+  return <>{children}</>;
 }
 
-// Hook for automatic scroll tracking
+// MARK: - Utility Hooks
+/**
+ * Hook for automatic scroll tracking
+ * Can be used independently in components that need scroll tracking
+ */
 export function useScrollTracking() {
   const logger = typeof window !== 'undefined' ? getUserActivityLogger() : null;
-  
+
   useEffect(() => {
+    if (!logger) return;
+
     let maxScrollDepth = 0;
-    let scrollTimeout: NodeJS.Timeout;
-    
+
     const handleScroll = () => {
-      clearTimeout(scrollTimeout);
-      
-      scrollTimeout = setTimeout(() => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        const scrollPercent = Math.round(((scrollTop + windowHeight) / documentHeight) * 100);
-        
-        if (scrollPercent > maxScrollDepth) {
-          maxScrollDepth = scrollPercent;
-          logger?.logScrollDepth(maxScrollDepth);
-          console.log('Analytics: Scroll depth tracked:', maxScrollDepth, '%');
-        }
-      }, 100);
+      const scrollPercent = Math.round(
+        (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100
+      );
+
+      if (scrollPercent > maxScrollDepth) {
+        maxScrollDepth = scrollPercent;
+        logger.logScrollDepth(maxScrollDepth);
+        console.log('Analytics: Scroll depth tracked:', maxScrollDepth, '%');
+      }
     };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
+    // Throttle scroll events
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll);
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
+      window.removeEventListener('scroll', throttledHandleScroll);
     };
   }, [logger]);
-}
-
-// Hook for form tracking
-export function useFormTracking(formId: string, formName: string) {
-  const analytics = useAnalytics();
-  
-  const trackFormSubmit = () => {
-    analytics.logFormInteraction(formId, formName, 'submit');
-  };
-  
-  const trackFormAbandon = () => {
-    analytics.logFormInteraction(formId, formName, 'abandon');
-  };
-  
-  const trackFieldInteraction = (fieldName: string, interactionType: 'focus' | 'blur' | 'change') => {
-    analytics.logFormInteraction(formId, formName, interactionType, fieldName);
-  };
-  
-  return {
-    trackFormSubmit,
-    trackFormAbandon,
-    trackFieldInteraction
-  };
 }

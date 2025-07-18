@@ -30,6 +30,18 @@ AUTH0_M2M_CLIENT_ID=your_m2m_client_id_here
 AUTH0_M2M_CLIENT_SECRET=your_m2m_client_secret_here
 
 # =============================================================================
+# AUTH0 CLIENT-SIDE CONFIGURATION (NEXT_PUBLIC_ for browser access)
+# =============================================================================
+# Your Auth0 domain (without https://) - e.g., your-tenant.auth0.com
+NEXT_PUBLIC_AUTH0_DOMAIN=your-auth0-domain.auth0.com
+
+# Your Auth0 application's Client ID (same as AUTH0_CLIENT_ID but for client-side)
+NEXT_PUBLIC_AUTH0_CLIENT_ID=your_auth0_client_id
+
+# Your Auth0 API Audience identifier - e.g., urn:legis-api
+NEXT_PUBLIC_AUTH0_AUDIENCE=urn:legis-api
+
+# =============================================================================
 # STRIPE CONFIGURATION
 # =============================================================================
 # Stripe publishable key (starts with pk_)
@@ -41,35 +53,36 @@ STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
 # Stripe webhook secret (starts with whsec_) - for webhook signature verification
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
-# Stripe Price IDs for each plan and billing frequency
+# Stripe Price IDs for paid plans (Enterprise is contact-sales only)
 STRIPE_STARTER_MONTHLY_PRICE_ID=price_starter_monthly_id_here
 STRIPE_STARTER_YEARLY_PRICE_ID=price_starter_yearly_id_here
 STRIPE_PROFESSIONAL_MONTHLY_PRICE_ID=price_professional_monthly_id_here
 STRIPE_PROFESSIONAL_YEARLY_PRICE_ID=price_professional_yearly_id_here
-STRIPE_ENTERPRISE_MONTHLY_PRICE_ID=price_enterprise_monthly_id_here
-STRIPE_ENTERPRISE_YEARLY_PRICE_ID=price_enterprise_yearly_id_here
 
 # =============================================================================
-# CLOUDFLARE WORKER CONFIGURATION
+# BACKEND SERVICES CONFIGURATION (CLOUDFLARE WORKERS)
 # =============================================================================
 # URL of your Cloudflare Worker MCP server
 NEXT_PUBLIC_MCP_WORKER_URL=https://mcp.example.com
 
-# URL for REST API endpoints (LegisAPI)
+# URL for REST API endpoints (LegisAPI on Cloudflare)
 NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api
 
-# URL for Cloudflare Worker API (LegisAPI)
-CLOUDFLARE_WORKER_URL=https://api.example.com
-
 # =============================================================================
-# PRODUCTION DEPLOYMENT NOTES
+# VERCEL DEPLOYMENT NOTES
 # =============================================================================
 # 1. Replace all placeholder values with your actual credentials
 # 2. Never commit the actual .env.local file to version control
-# 3. For production deployments:
-#    - Set NEXTAUTH_URL to your production domain
-#    - Set NEXT_PUBLIC_MCP_SERVER_URL to your backend URL
+# 3. For Vercel production deployment:
+#    - Set NEXTAUTH_URL to your Vercel production domain (e.g., https://yourdomain.vercel.app)
 #    - Use production Stripe keys (pk_live_...)
 #    - Use production Auth0 application settings
-# 4. For wrangler deployment, set these as environment variables in the dashboard
-# 5. Generate a secure NEXTAUTH_SECRET for production with: openssl rand -hex 32 
+#    - Set all environment variables in Vercel dashboard under Project Settings > Environment Variables
+# 4. Generate a secure NEXTAUTH_SECRET for production with: openssl rand -hex 32
+# 5. CLIENT-SIDE VARIABLES: Variables prefixed with NEXT_PUBLIC_ are accessible in the browser
+# 6. The NEXT_PUBLIC_AUTH0_DOMAIN should NOT include https:// (just the domain)
+# 7. The NEXT_PUBLIC_AUTH0_AUDIENCE should match your Auth0 API identifier
+# 8. Enterprise plans use static pricing (contact sales) - no Stripe price IDs needed
+# 9. Backend services remain on Cloudflare Workers - frontend deployed on Vercel
+# 10. Update Auth0 allowed callback URLs to include your new Vercel domain
+# 11. Update CORS settings on backend services to allow your Vercel domain 

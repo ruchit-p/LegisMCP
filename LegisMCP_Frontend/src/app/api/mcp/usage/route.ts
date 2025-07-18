@@ -18,7 +18,7 @@ interface MCPLogEntry {
 const getMCPUsageData = async (accessToken: string) => {
   try {
     // Use the Cloudflare Worker URL from env or default
-    const workerUrl = process.env.CLOUDFLARE_WORKER_URL || 'https://api.example.com';
+    const workerUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL || 'https://api.example.com';
     
     // Fetch user data and MCP logs from Cloudflare Worker using the Auth0 access token
     const headers: HeadersInit = {

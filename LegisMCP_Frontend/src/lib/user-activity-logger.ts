@@ -169,9 +169,7 @@ export class UserActivityLogger {
   private deviceType: 'desktop' | 'mobile' | 'tablet';
 
   private constructor() {
-    this.workerUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL || 
-                     process.env.CLOUDFLARE_WORKER_URL || 
-                     'https://api.example.com';
+    this.workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com';
     
     this.sessionId = this.generateSessionId();
     this.deviceType = this.detectDeviceType();

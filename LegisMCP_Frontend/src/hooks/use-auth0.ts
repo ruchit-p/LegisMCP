@@ -24,7 +24,7 @@ export function useAuth0() {
    */
   const login = useCallback(async (options?: { 
     screen_hint?: 'signup' | 'login';
-    prompt?: string;
+    prompt?: 'none' | 'login' | 'consent' | 'select_account';
   }) => {
     try {
       await loginWithRedirect({
@@ -110,7 +110,12 @@ export function useAuthGuard(redirectTo?: string) {
 
   // Redirect to login if not authenticated
   if (!isLoading && !isAuthenticated) {
-    login(redirectTo);
+    // Store redirect URL for use after authentication
+    if (redirectTo && typeof window !== 'undefined') {
+      localStorage.setItem('auth_return_to', redirectTo);
+    }
+    // Call login with Auth0 options format
+    login();
   }
 
   return {

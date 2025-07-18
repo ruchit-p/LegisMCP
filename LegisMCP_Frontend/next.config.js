@@ -28,7 +28,7 @@ const nextConfig = {
     return [
       {
         source: '/api/mcp/:path*',
-        destination: `${process.env.NEXT_PUBLIC_MCP_SERVER_URL || 'http://localhost:8789'}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_MCP_WORKER_URL || 'https://mcp.example.com'}/:path*`,
       },
     ];
   },

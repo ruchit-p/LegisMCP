@@ -26,7 +26,7 @@ export async function POST() {
     }
 
     // Get user's Stripe customer ID from the Cloudflare Worker
-    const workerUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com/api';
+    const workerUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com') + '/api';
     const userResponse = await fetch(`${workerUrl}/user/profile`, {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`,
@@ -60,7 +60,7 @@ export async function POST() {
       },
       body: new URLSearchParams({
         'customer': customerId,
-        'return_url': `${process.env.AUTH0_BASE_URL}/dashboard`,
+        'return_url': `${process.env.NEXTAUTH_URL}/dashboard`,
       }),
     });
 

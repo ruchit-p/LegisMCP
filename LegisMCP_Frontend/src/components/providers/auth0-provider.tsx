@@ -14,6 +14,12 @@ interface Auth0ProviderProps {
  * This replaces NextAuth.js with Auth0's native SDK
  */
 export function Auth0Provider({ children }: Auth0ProviderProps) {
+  // If Auth0 configuration is invalid, render children without Auth0 provider
+  if (!auth0Config) {
+    console.warn('Auth0 configuration is invalid. Authentication will be disabled.');
+    return <>{children}</>;
+  }
+
   return (
     <Auth0ReactProvider
       domain={auth0Config.domain}
@@ -25,7 +31,15 @@ export function Auth0Provider({ children }: Auth0ProviderProps) {
         // Handle redirect after login
         console.log('Auth0 redirect callback:', appState);
         
-        // Redirect to intended page or dashboard
+        // Check for stored return URL
+        const storedReturnTo = localStorage.getItem('auth_return_to');
+        if (storedReturnTo) {
+          localStorage.removeItem('auth_return_to');
+          window.location.replace(storedReturnTo);
+          return;
+        }
+        
+        // Default redirect to dashboard or intended page
         const returnTo = appState?.returnTo || '/dashboard';
         window.location.replace(returnTo);
       }}

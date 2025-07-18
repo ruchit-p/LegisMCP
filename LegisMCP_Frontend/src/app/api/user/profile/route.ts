@@ -31,7 +31,7 @@ class Auth0ManagementClient {
 
     constructor() {
         this.config = {
-            domain: process.env.AUTH0_DOMAIN!,
+            domain: process.env.NEXT_PUBLIC_AUTH0_DOMAIN!,
             clientId: process.env.AUTH0_M2M_CLIENT_ID!,
             clientSecret: process.env.AUTH0_M2M_CLIENT_SECRET!
         };

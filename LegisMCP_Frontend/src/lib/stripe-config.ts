@@ -16,7 +16,7 @@ export interface StripePlan {
   isFree?: boolean;
 }
 
-export interface StripeConfig {
+interface StripeConfig {
   plans: Record<string, StripePlan>;
   webhookEvents: string[];
 }
@@ -29,11 +29,11 @@ export const STRIPE_CONFIG: StripeConfig = {
       id: 'free',
       isFree: true,
       monthly: {
-        priceId: process.env.STRIPE_FREE_PRICE_ID || 'price_free',
+        priceId: 'price_free',
         amount: 0
       },
       yearly: {
-        priceId: process.env.STRIPE_FREE_PRICE_ID || 'price_free',
+        priceId: 'price_free',
         amount: 0
       }
     },
@@ -66,11 +66,11 @@ export const STRIPE_CONFIG: StripeConfig = {
       id: 'enterprise',
       isEnterprise: true,
       monthly: {
-        priceId: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || 'price_enterprise',
+        priceId: 'price_enterprise_contact_sales',
         amount: 0 // Contact sales
       },
       yearly: {
-        priceId: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID || 'price_enterprise',
+        priceId: 'price_enterprise_contact_sales',
         amount: 0 // Contact sales
       }
     }
@@ -120,6 +120,7 @@ export function isValidBillingFrequency(frequency: string): frequency is 'monthl
 
 /**
  * Validate Stripe environment variables
+ * Note: Enterprise plans use static price IDs since they're contact-sales only
  */
 export function validateStripeConfig(): {
   isValid: boolean;
@@ -150,21 +151,30 @@ export function formatPrice(amount: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount / 100);
+  }).format(amount / 100); // Convert cents to dollars
 }
 
 /**
- * Calculate yearly savings
+ * Get all available plans
  */
-export function calculateYearlySavings(monthlyPrice: number, yearlyPrice: number): {
-  amount: number;
-  percentage: number;
-} {
-  const monthlyTotal = monthlyPrice * 12;
-  const savings = monthlyTotal - yearlyPrice;
-  const percentage = Math.round((savings / monthlyTotal) * 100);
-  
-  return { amount: savings, percentage };
+export function getAllPlans(): StripePlan[] {
+  return Object.values(STRIPE_CONFIG.plans);
+}
+
+/**
+ * Get plans by type
+ */
+export function getPlansByType(type: 'paid' | 'free' | 'enterprise'): StripePlan[] {
+  return getAllPlans().filter(plan => {
+    switch (type) {
+      case 'free':
+        return plan.isFree;
+      case 'enterprise':
+        return plan.isEnterprise;
+      case 'paid':
+        return !plan.isFree && !plan.isEnterprise;
+      default:
+        return true;
+    }
+  });
 } 

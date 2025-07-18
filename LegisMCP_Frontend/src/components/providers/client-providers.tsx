@@ -1,9 +1,9 @@
 'use client'
 
+import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { StripeProvider } from '@/components/providers/stripe-provider'
 import { AnalyticsProvider } from '@/components/providers/analytics-provider'
-import { Auth0Provider } from '@/components/providers/auth0-provider'
 import { SmartRedirect } from '@/components/auth/SmartRedirect'
 import { Toaster } from '@/components/ui/toaster'
 
@@ -13,7 +13,7 @@ interface ClientProvidersProps {
 
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
-    <Auth0Provider>
+    <SessionProvider>
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
@@ -29,6 +29,6 @@ export function ClientProviders({ children }: ClientProvidersProps) {
           </AnalyticsProvider>
         </StripeProvider>
       </ThemeProvider>
-    </Auth0Provider>
+    </SessionProvider>
   )
 } 

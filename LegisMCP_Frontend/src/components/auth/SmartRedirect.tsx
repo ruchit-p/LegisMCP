@@ -10,7 +10,7 @@ interface SmartRedirectProps {
 }
 
 export function SmartRedirect({ children }: SmartRedirectProps) {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth0();
+  const { isAuthenticated, isLoading: authLoading } = useAuth0();
   const { role, isLoading: roleLoading } = useUserRole();
   const router = useRouter();
   const pathname = usePathname();
@@ -63,41 +63,17 @@ export function SmartRedirect({ children }: SmartRedirectProps) {
 
 // Hook to get redirect status for display purposes
 export function useRedirectStatus() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth0();
+  const { isAuthenticated, isLoading: authLoading } = useAuth0();
   const { role, isLoading: roleLoading } = useUserRole();
   const pathname = usePathname();
 
   const isLoading = authLoading || roleLoading;
-  
-  if (isLoading || !user || !role) {
-    return { isLoading, shouldRedirect: false, targetPath: null };
-  }
+  const shouldRedirect = !isLoading && !isAuthenticated && pathname !== '/';
 
-  const redirectRules = {
-    admin: {
-      from: ['/', '/dashboard'],
-      to: '/admin/dashboard'
-    },
-    super_admin: {
-      from: ['/', '/dashboard'],
-      to: '/admin/dashboard'
-    },
-    user: {
-      from: ['/'],
-      to: '/dashboard'
-    }
-  };
-
-  const ruleForRole = redirectRules[role];
-  if (!ruleForRole) {
-    return { isLoading: false, shouldRedirect: false, targetPath: null };
-  }
-
-  const shouldRedirect = ruleForRole.from.includes(pathname) && pathname !== ruleForRole.to;
-  
   return {
-    isLoading: false,
+    isLoading,
     shouldRedirect,
-    targetPath: shouldRedirect ? ruleForRole.to : null
+    user: null, // Simplified for this hook
+    role,
   };
 }

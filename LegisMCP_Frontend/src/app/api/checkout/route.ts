@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        'success_url': `${process.env.AUTH0_BASE_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
-        'cancel_url': `${process.env.AUTH0_BASE_URL}/?canceled=true`,
+              'success_url': `${process.env.NEXTAUTH_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
+      'cancel_url': `${process.env.NEXTAUTH_URL}/?canceled=true`,
         'payment_method_types[0]': 'card',
         'mode': 'subscription',
         'line_items[0][price]': priceId,
