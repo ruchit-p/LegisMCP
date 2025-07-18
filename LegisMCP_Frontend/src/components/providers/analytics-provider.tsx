@@ -170,3 +170,40 @@ export function useScrollTracking() {
     };
   }, [logger]);
 }
+
+// MARK: - Analytics Hooks
+/**
+ * Hook for accessing analytics functionality
+ * Note: Currently returns stub implementation
+ */
+export function useAnalytics() {
+  const { data: session } = useSession();
+  
+  return {
+    trackEvent: (event: string, properties?: Record<string, any>) => {
+      console.log('Analytics event:', event, properties);
+    },
+    trackPageView: (page: string) => {
+      console.log('Analytics page view:', page);
+    },
+    isEnabled: !!session,
+  };
+}
+
+/**
+ * Hook for form tracking analytics
+ * Note: Currently returns stub implementation
+ */
+export function useFormTracking() {
+  return {
+    trackFormStart: (formName: string) => {
+      console.log('Form started:', formName);
+    },
+    trackFormSubmit: (formName: string, success: boolean) => {
+      console.log('Form submitted:', formName, 'Success:', success);
+    },
+    trackFormError: (formName: string, error: string) => {
+      console.log('Form error:', formName, error);
+    },
+  };
+}

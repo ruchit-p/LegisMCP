@@ -3,12 +3,6 @@
     "outputDirectory": "LegisMCP_Frontend/.next",
     "installCommand": "cd LegisMCP_Frontend && npm install",
     "devCommand": "cd LegisMCP_Frontend && npm run dev",
-    "framework": "nextjs",
-    "functions": {
-        "LegisMCP_Frontend/src/app/api/**/*.ts": {
-            "maxDuration": 30
-        }
-    },
     "rewrites": [
         {
             "source": "/api/mcp/:path*",
