@@ -15,7 +15,7 @@ const authOptions: NextAuthOptions = {
         params: {
           scope: 'openid email profile offline_access read:bills read:members read:votes read:committees',
           // Add the audience parameter to get a proper access token for your API
-          audience: process.env.AUTH0_AUDIENCE || 'https://api.example.com'
+          audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || process.env.AUTH0_AUDIENCE || 'urn:legis-api'
         }
       }
     })
@@ -78,6 +78,11 @@ const authOptions: NextAuthOptions = {
   
   // Add debug logging
   debug: process.env.NODE_ENV === 'development',
+  
+  // Custom error pages
+  pages: {
+    error: '/api/auth/error', // Error code passed in query string as ?error=
+  },
   
   // Removed custom pages - using NextAuth.js default sign-in page
   // pages: {
