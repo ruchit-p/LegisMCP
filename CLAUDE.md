@@ -63,6 +63,10 @@ wrangler d1 execute legis-db --file=./migrations/002_add_subscription_billing_cy
 wrangler d1 execute legis-db --file=./migrations/003_add_monitoring_events.sql
 wrangler d1 execute legis-db --file=./migrations/004_add_sessions_table.sql
 
+## Production API URL
+
+**LegisAPI is deployed at**: `https://api.example.com`
+
 ## ✅ Recent Improvements Completed (Jan 16, 2025)
 
 **Database Optimization & Cleanup:**
@@ -144,7 +148,8 @@ AUTH0_CLIENT_SECRET='<client-secret>'
 AUTH0_AUDIENCE='urn:legis-api'
 AUTH0_SCOPE='openid email profile offline_access read:bills read:members read:votes read:committees'
 NODE_ENV='development'
-API_BASE_URL='http://localhost:8789'
+API_BASE_URL='http://localhost:8789'  # For local development
+# API_BASE_URL='https://api.example.com'  # For production
 ```
 
 ### LegisAPI (.dev.vars)

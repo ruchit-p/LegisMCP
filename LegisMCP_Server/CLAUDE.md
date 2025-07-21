@@ -21,6 +21,7 @@ The repository contains two main components:
 
 ### 2. LegisAPI (`LegisAPI/`)
 - **Purpose**: Protected REST API that interfaces with congress.gov
+- **Production URL**: https://api.example.com
 - **Key Files**:
   - `src/index.ts`: Hono-based API with JWT middleware
   - `src/middlewares/jwt.ts`: Auth0 JWT verification middleware
@@ -69,7 +70,7 @@ wrangler d1 execute legis-db --file=./schema.sql
 - `AUTH0_AUDIENCE`: API identifier (e.g., "urn:legis-api")
 - `AUTH0_SCOPE`: Requested scopes (e.g., "openid email profile offline_access read:bills read:members read:votes read:committees")
 - `NODE_ENV`: Environment ("development" for local)
-- `API_BASE_URL`: LegisAPI base URL
+- `API_BASE_URL`: LegisAPI base URL (https://api.example.com for production)
 
 ### Environment Variables (LegisAPI)
 - `AUTH0_DOMAIN`: Auth0 tenant domain
