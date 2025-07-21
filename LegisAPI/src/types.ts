@@ -1,16 +1,5 @@
-import type { D1Database, AnalyticsEngineDataset, KVNamespace } from '@cloudflare/workers-types';
-
-export interface Env {
-    AUTH0_DOMAIN: string;
-    AUTH0_AUDIENCE: string;
-    DB: D1Database;
-    ANALYTICS: AnalyticsEngineDataset;
-    CONGRESS_API_KEY?: string;
-    CONGRESS_KEYS: KVNamespace;
-    STRIPE_WEBHOOK_SECRET: string;
-    STRIPE_API_KEY: string;
-    CRON_TOKEN?: string;
-}
+// The Env interface is now generated in worker-configuration.d.ts
+// and is available globally, no need to redefine it here
 
 export interface JWTPayload {
     sub: string;

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 import { UserService } from '../services/user';
 import { PlansService } from '../services/plans';
-import type { Env, JWTPayload } from '../types';
+import type { JWTPayload } from '../types';
 
 export const adminRoutes = new Hono<{ Bindings: Env }>();
 

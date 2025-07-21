@@ -76,7 +76,6 @@ tsconfig.tsbuildinfo
 # Cloudflare Workers
 .wrangler/
 .dev.vars
-worker-configuration.d.ts
 
 # Auth0
 auth0-secrets.json

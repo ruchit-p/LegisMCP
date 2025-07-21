@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { StripeService } from '../services/stripe';
 import { MonitoringService } from '../services/monitoring';
-import type { Env } from '../types';
+
 
 export const webhookRoutes = new Hono<{ Bindings: Env }>();
 

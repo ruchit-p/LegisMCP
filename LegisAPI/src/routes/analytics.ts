@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "../utils/http-exception";
 import { z } from "zod";
-import type { Env, JWTPayload } from "../types";
+import type { JWTPayload } from '../types';
 import { UserService } from "../services/user";
 
 const analyticsRoutes = new Hono<{

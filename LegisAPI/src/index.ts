@@ -8,7 +8,7 @@ import { CongressServiceV2 } from "./services/congress-v2";
 import { UserService } from "./services/user";
 import { ApiKeyService } from "./services/apikey";
 import { HTTPException } from "./utils/http-exception";
-import type { Env, JWTPayload } from "./types";
+import type { JWTPayload } from "./types";
 import { configRoutes } from "./routes/config";
 import { adminRoutes } from "./routes/admin";
 import { webhookRoutes } from "./routes/webhook";

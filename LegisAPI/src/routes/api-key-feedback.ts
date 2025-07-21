@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { jwt } from '../middlewares/jwt';
 import { UserService } from '../services/user';
-import type { Env, JWTPayload } from '../types';
+import type { JWTPayload } from '../types';
 
 // MARK: - Types
 

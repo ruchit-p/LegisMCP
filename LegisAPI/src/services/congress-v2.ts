@@ -1,4 +1,4 @@
-import { Env } from '../types';
+
 
 export interface Bill {
   billNumber: number;

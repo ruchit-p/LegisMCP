@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { PlansService } from '../services/plans';
 import { AuthConfigService } from '../services/auth-config';
-import type { Env } from '../types';
+
 
 export const configRoutes = new Hono<{ Bindings: Env }>();
 

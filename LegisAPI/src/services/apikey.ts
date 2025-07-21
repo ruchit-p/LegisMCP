@@ -1,4 +1,4 @@
-import type { Env } from '../../worker-configuration';
+// Env type is now globally available from worker-configuration.d.ts
 
 export class ApiKeyService {
   constructor(private env: Env) {}

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { MonitoringService } from '../services/monitoring';
-import type { Env } from '../types';
+
 
 export const monitoringRoutes = new Hono<{ Bindings: Env }>();
 

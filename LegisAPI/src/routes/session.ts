@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { SessionService } from '../services/session';
 import { HTTPException } from '../utils/http-exception';
-import type { Env } from '../types';
+
 
 const sessionRoutes = new Hono<{ Bindings: Env }>();
 

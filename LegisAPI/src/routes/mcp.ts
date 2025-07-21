@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { jwt } from '../middlewares/jwt';
 import { analytics } from '../middlewares/analytics';
 import { HTTPException } from '../utils/http-exception';
-import type { Env } from '../types';
+
 
 export const mcpRoutes = new Hono<{ Bindings: Env }>();
 
