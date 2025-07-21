@@ -75,11 +75,11 @@ export function FeaturesSection() {
                     <div className="flex items-center gap-2">
                       <span>{feature.name}</span>
                       <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                        feature.category === 'integration' ? 'bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-800' :
-                        feature.category === 'data' ? 'bg-green-50 text-green-700 ring-green-700/10 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-800' :
-                        feature.category === 'ai' ? 'bg-purple-50 text-purple-700 ring-purple-700/10 dark:bg-purple-900/20 dark:text-purple-400 dark:ring-purple-800' :
-                        feature.category === 'security' ? 'bg-red-50 text-red-700 ring-red-700/10 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-800' :
-                        'bg-orange-50 text-orange-700 ring-orange-700/10 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-800'
+                        feature.category === 'integration' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                        feature.category === 'data' ? 'bg-green-50 text-green-700 ring-green-700/10' :
+                        feature.category === 'ai' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
+                        feature.category === 'security' ? 'bg-red-50 text-red-700 ring-red-700/10' :
+                        'bg-orange-50 text-orange-700 ring-orange-700/10'
                       }`}>
                         {categories[feature.category].name}
                       </span>
