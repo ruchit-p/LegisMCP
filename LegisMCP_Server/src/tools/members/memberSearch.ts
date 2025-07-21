@@ -227,8 +227,9 @@ export class MemberSearchTool {
    * Generate member summary
    */
   private generateMemberSummary(member: any, enhancedData: any): string {
-    const name = member.fullName || member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown';
-    const party = member.party || member.partyName || '?';
+    // Use fullName which should be set by transformMember in congress-v2.ts
+    const name = member.fullName || 'Unknown';
+    const party = member.party || '?';
     const state = member.state || '?';
     const chamber = member.chamber || 'Unknown';
     

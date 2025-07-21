@@ -235,17 +235,23 @@ export class EnhancedBillAnalysisTool {
   // Enhanced Analysis Methods
 
   private determineBillActivity(actions: any[]): boolean {
-    if (!actions.length) return false;
+    if (!actions || !actions.length) return false;
     const latestAction = actions[0];
+    if (!latestAction || !latestAction.actionDate) return false;
     const actionDate = new Date(latestAction.actionDate);
     const daysSinceAction = (Date.now() - actionDate.getTime()) / (1000 * 60 * 60 * 24);
     return daysSinceAction < 30;
   }
 
   private determineBillStage(actions: any[]): string {
-    if (!actions.length) return 'Unknown';
+    if (!actions || !actions.length) return 'Unknown';
     
-    const actionTexts = actions.map(a => a.text.toLowerCase());
+    // Safely extract action texts, handling different property names
+    const actionTexts = actions
+      .filter(a => a && (a.text || a.description || a.actionText))
+      .map(a => (a.text || a.description || a.actionText || '').toLowerCase());
+    
+    if (actionTexts.length === 0) return 'Unknown';
     
     if (actionTexts.some(text => text.includes('became public law'))) {
       return 'Enacted';
@@ -285,21 +291,22 @@ export class EnhancedBillAnalysisTool {
     
     // Committee activity (0-20 points)
     const committeeActions = actions.filter(a => {
+      if (!a || !a.text) return false;
       const text = a.text.toLowerCase();
       return text.includes('committee') && !text.includes('referred to');
     });
     
-    if (committeeActions.some(a => a.text.toLowerCase().includes('reported'))) score += 20;
-    else if (committeeActions.some(a => a.text.toLowerCase().includes('markup'))) score += 15;
-    else if (committeeActions.some(a => a.text.toLowerCase().includes('hearing'))) score += 10;
+    if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('reported'))) score += 20;
+    else if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('markup'))) score += 15;
+    else if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('hearing'))) score += 10;
     else if (committeeActions.length > 0) score += 5;
     
     // Floor activity (0-30 points)
-    if (actions.some(a => a.text.toLowerCase().includes('passed house') && a.text.toLowerCase().includes('passed senate'))) {
+    if (actions.some(a => a.text && a.text.toLowerCase().includes('passed house') && a.text.toLowerCase().includes('passed senate'))) {
       score += 30;
-    } else if (actions.some(a => a.text.toLowerCase().includes('passed'))) {
+    } else if (actions.some(a => a.text && a.text.toLowerCase().includes('passed'))) {
       score += 20;
-    } else if (actions.some(a => a.text.toLowerCase().includes('floor'))) {
+    } else if (actions.some(a => a.text && a.text.toLowerCase().includes('floor'))) {
       score += 10;
     }
     
@@ -333,14 +340,15 @@ export class EnhancedBillAnalysisTool {
     ];
     
     for (const action of actions) {
+      if (!action || !action.text) continue;
       for (const { keyword, weight } of importantKeywords) {
         if (action.text.toLowerCase().includes(keyword)) {
           milestones.push({
-            date: action.actionDate,
+            date: action.actionDate || action.date,
             action: action.text,
             type: keyword,
             weight,
-            daysAgo: this.calculateDaysAgo(action.actionDate)
+            daysAgo: this.calculateDaysAgo(action.actionDate || action.date)
           });
           break;
         }
@@ -460,14 +468,14 @@ export class EnhancedBillAnalysisTool {
 
   private assessCommitteeActivity(committees: any[], actions: any[]): string {
     const committeeActions = actions.filter(a => 
-      a.text.toLowerCase().includes('committee')
+      a && a.text && a.text.toLowerCase().includes('committee')
     );
     
-    if (committeeActions.some(a => a.text.toLowerCase().includes('reported'))) {
+    if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('reported'))) {
       return 'Reported - Ready for floor';
-    } else if (committeeActions.some(a => a.text.toLowerCase().includes('markup'))) {
+    } else if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('markup'))) {
       return 'In markup - Active consideration';
-    } else if (committeeActions.some(a => a.text.toLowerCase().includes('hearing'))) {
+    } else if (committeeActions.some(a => a.text && a.text.toLowerCase().includes('hearing'))) {
       return 'Hearing held - Under review';
     } else if (committees.length > 0) {
       return 'Referred - Awaiting action';
@@ -606,6 +614,7 @@ export class EnhancedBillAnalysisTool {
     
     // Opposition actions (simplified)
     const oppositionActions = actions.filter(a => {
+      if (!a || !a.text) return false;
       const text = a.text.toLowerCase();
       return text.includes('objection') || text.includes('failed') || text.includes('rejected');
     });

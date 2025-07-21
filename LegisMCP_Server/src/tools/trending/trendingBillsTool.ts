@@ -249,6 +249,9 @@ export class TrendingBillsTool {
         // Calculate enhanced metrics
         const cosponsorsArray = Array.isArray(cosponsorData?.cosponsors) ? cosponsorData.cosponsors : [];
         const actionsArray = Array.isArray(actionData?.actions) ? actionData.actions : [];
+        
+        // Handle subjects data structure properly
+        // Congress.gov returns { subjects: { policyArea: {...}, legislativeSubjects: [...] } }
         const subjectsObject = subjectData?.subjects || {};
         
         const bipartisanMetrics = this.calculateBipartisanMetrics(cosponsorsArray);

@@ -310,6 +310,9 @@ export class CongressQueryTool {
     
     let cleaned = query;
     
+    // Handle possessive forms - convert "Pelosi's" to "Pelosi"
+    cleaned = cleaned.replace(/(\w+)'s\b/gi, '$1');
+    
     // Remove congress references
     cleaned = cleaned.replace(/\b(11[0-9]|1[2-9][0-9])\s*(?:th|st|nd|rd)?\s*congress\b/gi, '');
     
@@ -323,6 +326,9 @@ export class CongressQueryTool {
     for (const word of removeWords) {
       cleaned = cleaned.replace(new RegExp(`\\b${word}\\b`, 'gi'), '');
     }
+    
+    // Clean up multiple spaces
+    cleaned = cleaned.replace(/\s+/g, ' ');
     
     return cleaned.trim();
   }

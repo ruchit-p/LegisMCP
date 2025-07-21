@@ -210,6 +210,8 @@ export class SubresourceTool {
    * Extract items from subresource data
    */
   private extractItems(data: any, subresource: string): any[] {
+    if (!data) return [];
+    
     // Map subresource names to data property names
     const dataMapping: Record<string, string> = {
       'actions': 'actions',
@@ -226,7 +228,30 @@ export class SubresourceTool {
     };
 
     const propertyName = dataMapping[subresource] || subresource;
-    return data[propertyName] || [];
+    
+    // Handle both old (double-wrapped) and new (correct) formats
+    // New format: data.actions is the array directly
+    if (Array.isArray(data[propertyName])) {
+      return data[propertyName];
+    }
+    
+    // Old format: data.actions.actions is the array (double-wrapped)
+    if (data[propertyName] && Array.isArray(data[propertyName][propertyName])) {
+      return data[propertyName][propertyName];
+    }
+    
+    // Direct array response
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
+    // Special handling for subjects which has a different structure
+    if (subresource === 'subjects' && data.subjects) {
+      // Congress.gov returns subjects as an object with legislativeSubjects array
+      return [data.subjects]; // Wrap in array for consistent handling
+    }
+    
+    return [];
   }
 
   /**

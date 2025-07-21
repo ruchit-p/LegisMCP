@@ -466,8 +466,8 @@ export class CongressServiceV2 {
     }
 
     return {
-      billNumber: data.number || parseInt(data.billNumber),
-      billType: data.type || data.billType,
+      billNumber: parseInt(data.number || data.billNumber), // Congress.gov returns 'number' as string
+      billType: data.type || data.billType || data.originChamberCode?.toLowerCase(),
       congress: data.congress || parseInt(data.congress),
       title: data.title || data.short_title || data.official_title || 'Untitled',
       introducedDate: data.introducedDate,
@@ -481,18 +481,53 @@ export class CongressServiceV2 {
   }
 
   private transformMember(data: any): Member {
+    // Handle different name formats from Congress.gov
+    let firstName = data.firstName || '';
+    let lastName = data.lastName || '';
+    let fullName = data.fullName || data.name || '';
+    
+    // If we only have a combined name field, try to split it
+    if (!firstName && !lastName && fullName) {
+      const nameParts = fullName.split(',')[0].split(' '); // Remove title suffixes
+      if (nameParts.length >= 2) {
+        firstName = nameParts[0];
+        lastName = nameParts[nameParts.length - 1];
+      }
+    }
+    
+    // Ensure we have a fullName
+    if (!fullName && (firstName || lastName)) {
+      fullName = `${firstName} ${lastName}`.trim();
+    }
+    
     return {
       bioguideId: data.bioguideId,
-      fullName: `${data.firstName} ${data.lastName}`,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      party: data.partyName || data.party,
+      fullName: fullName || 'Unknown',
+      firstName: firstName,
+      lastName: lastName,
+      party: data.party || data.partyName?.charAt(0) || '',
       state: data.state,
-      chamber: data.chamber?.toLowerCase() || (data.terms?.[0]?.chamber?.toLowerCase()),
+      chamber: this.extractChamber(data),
       district: data.district,
       phoneNumber: data.phoneNumber,
       url: data.url
     };
+  }
+  
+  private extractChamber(data: any): 'house' | 'senate' {
+    // Check direct chamber field
+    if (data.chamber) {
+      return data.chamber.toLowerCase().includes('house') ? 'house' : 'senate';
+    }
+    
+    // Check terms array for chamber info
+    if (data.terms?.item?.[0]?.chamber) {
+      const chamber = data.terms.item[0].chamber.toLowerCase();
+      return chamber.includes('house') ? 'house' : 'senate';
+    }
+    
+    // Default based on district presence
+    return data.district ? 'house' : 'senate';
   }
 
   private transformCommittee(data: any): Committee {

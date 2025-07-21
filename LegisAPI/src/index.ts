@@ -264,7 +264,8 @@ app.get("/api/bills/:congress/:type/:number/actions", requireScope("read:bills")
 			type,
 			parseInt(number)
 		);
-		return c.json({ actions });
+		// Pass through the original Congress.gov response structure
+		return c.json(actions);
 	} catch (error) {
 		console.error("Error fetching bill actions:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill actions" });
@@ -281,7 +282,8 @@ app.get("/api/bills/:congress/:type/:number/text", requireScope("read:bills"), a
 			type,
 			parseInt(number)
 		);
-		return c.json({ text });
+		// Pass through the original Congress.gov response structure
+		return c.json(text);
 	} catch (error) {
 		console.error("Error fetching bill text:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill text" });
@@ -298,7 +300,8 @@ app.get("/api/bills/:congress/:type/:number/cosponsors", requireScope("read:bill
 			type,
 			parseInt(number)
 		);
-		return c.json({ cosponsors });
+		// Pass through the original Congress.gov response structure
+		return c.json(cosponsors);
 	} catch (error) {
 		console.error("Error fetching bill cosponsors:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill cosponsors" });
@@ -315,7 +318,8 @@ app.get("/api/bills/:congress/:type/:number/committees", requireScope("read:bill
 			type,
 			parseInt(number)
 		);
-		return c.json({ committees });
+		// Pass through the original Congress.gov response structure
+		return c.json(committees);
 	} catch (error) {
 		console.error("Error fetching bill committees:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill committees" });
@@ -332,7 +336,8 @@ app.get("/api/bills/:congress/:type/:number/amendments", requireScope("read:bill
 			type,
 			parseInt(number)
 		);
-		return c.json({ amendments });
+		// Pass through the original Congress.gov response structure
+		return c.json(amendments);
 	} catch (error) {
 		console.error("Error fetching bill amendments:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill amendments" });
@@ -349,7 +354,8 @@ app.get("/api/bills/:congress/:type/:number/relatedbills", requireScope("read:bi
 			type,
 			parseInt(number)
 		);
-		return c.json({ relatedBills });
+		// Pass through the original Congress.gov response structure
+		return c.json(relatedBills);
 	} catch (error) {
 		console.error("Error fetching related bills:", error);
 		throw new HTTPException(500, { message: "Failed to fetch related bills" });
@@ -366,7 +372,8 @@ app.get("/api/bills/:congress/:type/:number/subjects", requireScope("read:bills"
 			type,
 			parseInt(number)
 		);
-		return c.json({ subjects });
+		// Pass through the original Congress.gov response structure
+		return c.json(subjects);
 	} catch (error) {
 		console.error("Error fetching bill subjects:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill subjects" });
@@ -383,7 +390,8 @@ app.get("/api/bills/:congress/:type/:number/summaries", requireScope("read:bills
 			type,
 			parseInt(number)
 		);
-		return c.json({ summaries });
+		// Pass through the original Congress.gov response structure
+		return c.json(summaries);
 	} catch (error) {
 		console.error("Error fetching bill summaries:", error);
 		throw new HTTPException(500, { message: "Failed to fetch bill summaries" });
