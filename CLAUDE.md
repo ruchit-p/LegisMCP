@@ -109,7 +109,7 @@ wrangler d1 execute legis-db --file=./migrations/004_add_sessions_table.sql
 
 ### Key Technologies
 - **Authentication**: Auth0 (OIDC/OAuth2) across all components
-- **Payments**: Stripe for subscription management
+- **Payments**: Stripe for subscription management (Developer $9.99/mo, Professional $29.99/mo, Enterprise custom pricing)
 - **Database**: Cloudflare D1 (SQLite) for user management and analytics
 - **Storage**: Cloudflare KV for OAuth state and caching
 - **Deployment**: Cloudflare Workers (backend), Cloudflare Pages (frontend)
@@ -506,10 +506,10 @@ Central user management with Auth0 integration:
 
 Subscription plan definitions:
 
-- **Free**: 100 API calls/month, $0
-- **Developer**: 5,000 API calls/month, $19/month
-- **Professional**: 25,000 API calls/month, $49/month
-- **Enterprise**: Unlimited API calls, $199/month
+- **Free**: 100 MCP calls (one-time), $0
+- **Developer**: 1,000 MCP calls/month, $9.99/month ($7.99/month yearly)
+- **Professional**: 10,000 MCP calls/month, $29.99/month ($23.99/month yearly)
+- **Enterprise**: Unlimited MCP calls, Contact Sales
 
 #### Tracking Tables
 

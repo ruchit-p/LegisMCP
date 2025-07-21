@@ -1,0 +1,12 @@
+# Auth0 Configuration (Use your Auth0 LOCAL app credentials)
+AUTH0_DOMAIN='<your-tenant>.auth0.com'
+AUTH0_CLIENT_ID='<local-app-client-id>'
+AUTH0_CLIENT_SECRET='<local-app-client-secret>'
+AUTH0_AUDIENCE='urn:legis-api'
+AUTH0_SCOPE='openid email profile offline_access read:bills read:members read:votes read:committees'
+
+# Development Mode
+NODE_ENV='development'
+
+# API URL
+API_BASE_URL='http://localhost:8789'

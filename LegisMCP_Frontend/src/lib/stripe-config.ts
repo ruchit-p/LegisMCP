@@ -46,7 +46,7 @@ export const STRIPE_CONFIG: StripeConfig = {
       },
       yearly: {
         priceId: process.env.STRIPE_STARTER_YEARLY_PRICE_ID!,
-        amount: 9999 // $99.99
+        amount: 799 // $7.99/month (20% off)
       }
     },
     professional: {
@@ -58,7 +58,7 @@ export const STRIPE_CONFIG: StripeConfig = {
       },
       yearly: {
         priceId: process.env.STRIPE_PROFESSIONAL_YEARLY_PRICE_ID!,
-        amount: 29999 // $299.99
+        amount: 2399 // $23.99/month (20% off)
       }
     },
     enterprise: {

@@ -280,8 +280,8 @@ export default function BillingPage() {
                   const details = planDetails[planId as keyof typeof planDetails];
                   const Icon = details.icon;
                   const isCurrentPlan = currentPlan === planId;
-                  const yearlyPrice = plan.isFree ? 0 : plan.yearly.amount * 12;
                   const monthlyPrice = plan.monthly.amount;
+                  const yearlyPrice = plan.yearly.amount;
                   const displayPrice = billingFrequency === 'monthly' ? monthlyPrice : yearlyPrice;
 
                   return (
@@ -311,8 +311,13 @@ export default function BillingPage() {
                                 {formatPrice(displayPrice)}
                               </span>
                               <span className="text-muted-foreground text-sm">
-                                /{billingFrequency === 'monthly' ? 'mo' : 'yr'}
+                                /month
                               </span>
+                              {billingFrequency === 'yearly' && (
+                                <span className="text-xs text-muted-foreground block">
+                                  billed annually
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>

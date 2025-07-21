@@ -1,0 +1,10 @@
+# Auth0 Configuration (shared settings)
+AUTH0_DOMAIN='<your-tenant>.auth0.com'
+AUTH0_AUDIENCE='urn:legis-api'
+
+# Congress.gov API (optional, for higher rate limits)
+CONGRESS_API_KEY='<optional>'
+
+# Stripe Configuration (test keys)
+STRIPE_API_KEY='sk_test_...'
+STRIPE_WEBHOOK_SECRET='whsec_...'
