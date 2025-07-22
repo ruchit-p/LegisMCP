@@ -248,25 +248,6 @@ export default function DashboardPage() {
                 icon={<Key className="h-5 w-5" />}
                 showDetailedStats={true}
               />
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Available Actions</CardTitle>
-                  <CardDescription>
-                    Current actions you can take right now.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-4">
-                  <Button variant="outline" onClick={() => setActiveTab('usage')}>
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    View Usage
-                  </Button>
-                  <Button variant="outline" onClick={() => setActiveTab('subscription')}>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Manage Subscription
-                  </Button>
-                </CardContent>
-              </Card>
             </TabsContent>
 
             {/* Subscription Tab */}
