@@ -1,6 +1,8 @@
-# Auth0 Setup for LegiUSA MCP Platform
+# Authentication Documentation
 
-This document explains how Auth0 is configured for the LegiUSA MCP platform, which consists of three main components:
+## Overview
+
+LegisMCP uses Auth0 for authentication, integrated through NextAuth.js (Auth.js). This guide covers both the Auth0 configuration and the NextAuth.js implementation.
 
 ## Architecture Overview
 
@@ -158,3 +160,104 @@ If your frontend needs to make server-side API calls (e.g., from API routes), cr
 4. **Enable MFA** for Auth0 dashboard access
 5. **Monitor Auth0 logs** for suspicious activity
 6. **Use refresh token rotation** in production
+
+## NextAuth.js Configuration
+
+### Quick Setup Overview
+
+The application uses **NextAuth.js with Auth0 provider** for authentication, providing:
+
+- ✅ Server-side session management
+- ✅ Automatic token handling
+- ✅ Built-in CSRF protection
+- ✅ Easy integration with Next.js API routes
+
+### Required Environment Variables
+
+#### NextAuth.js Core Variables
+
+```bash
+NEXTAUTH_SECRET=<generate-with-openssl-rand-hex-32>
+NEXTAUTH_URL=https://your-app-name.vercel.app
+```
+
+#### Auth0 Application Credentials
+
+```bash
+AUTH0_ISSUER_BASE_URL=https://your-domain.auth0.com
+AUTH0_CLIENT_ID=your_regular_web_app_client_id
+AUTH0_CLIENT_SECRET=your_regular_web_app_client_secret
+```
+
+#### Auth0 Machine-to-Machine (for server operations)
+
+```bash
+AUTH0_M2M_CLIENT_ID=your_m2m_client_id
+AUTH0_M2M_CLIENT_SECRET=your_m2m_client_secret
+```
+
+#### Public Auth0 Variables (for frontend)
+
+```bash
+NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
+NEXT_PUBLIC_AUTH0_CLIENT_ID=your_regular_web_app_client_id
+NEXT_PUBLIC_AUTH0_AUDIENCE=urn:legis-api
+```
+
+### Implementation Details
+
+#### Auth Configuration (`/src/lib/auth.ts`)
+
+```typescript
+import NextAuth from 'next-auth';
+import Auth0Provider from 'next-auth/providers/auth0';
+
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  providers: [
+    Auth0Provider({
+      clientId: process.env.AUTH0_CLIENT_ID!,
+      clientSecret: process.env.AUTH0_CLIENT_SECRET!,
+      issuer: process.env.AUTH0_ISSUER_BASE_URL!,
+      authorization: {
+        params: {
+          audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+          scope: 'openid email profile offline_access read:bills read:members',
+        },
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, account, profile }) {
+      if (account) {
+        token.accessToken = account.access_token;
+        token.expiresAt = account.expires_at;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken;
+      return session;
+    },
+  },
+});
+```
+
+### Migration from Auth0 SDK
+
+The application has been migrated from `@auth0/nextjs-auth0` to NextAuth.js for better compatibility with Next.js App Router and improved type safety.
+
+#### Key Changes:
+
+1. **Session Handling**: Sessions are now managed by NextAuth.js instead of Auth0 SDK
+2. **API Routes**: Authentication endpoints moved from `/api/auth/[auth0]` to `/api/auth/[...nextauth]`
+3. **Token Management**: Access tokens are stored in JWT and available in session
+4. **Type Safety**: Full TypeScript support with extended session types
+
+### Vercel Deployment
+
+When deploying to Vercel:
+
+1. Set all environment variables in Vercel dashboard
+2. Update Auth0 application URLs to include Vercel domain
+3. Generate `NEXTAUTH_SECRET` using: `openssl rand -hex 32`
+4. Set `NEXTAUTH_URL` to your production URL

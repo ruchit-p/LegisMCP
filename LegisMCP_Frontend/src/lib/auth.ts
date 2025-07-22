@@ -47,6 +47,51 @@ const authOptions: NextAuthOptions = {
         token.picture = user.image
       }
       
+      // Check if token has expired and refresh if needed
+      if (token.expiresAt && token.refreshToken) {
+        const now = Math.floor(Date.now() / 1000)
+        const expiresAt = token.expiresAt as number
+        
+        // Refresh token if it will expire in the next 5 minutes
+        if (expiresAt - now < 300) {
+          console.log('Token is expiring soon, refreshing...')
+          
+          try {
+            const response = await fetch(`${process.env.AUTH0_ISSUER_BASE_URL}/oauth/token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                client_id: process.env.AUTH0_CLIENT_ID!,
+                client_secret: process.env.AUTH0_CLIENT_SECRET!,
+                refresh_token: token.refreshToken as string,
+              }),
+            })
+            
+            if (response.ok) {
+              const refreshedTokens = await response.json()
+              
+              console.log('Token refreshed successfully')
+              
+              token.accessToken = refreshedTokens.access_token
+              token.idToken = refreshedTokens.id_token
+              token.expiresAt = Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
+              
+              // Update refresh token if a new one was provided
+              if (refreshedTokens.refresh_token) {
+                token.refreshToken = refreshedTokens.refresh_token
+              }
+            } else {
+              console.error('Failed to refresh token:', await response.text())
+              // Don't throw here - let the app handle the expired token
+            }
+          } catch (error) {
+            console.error('Error refreshing token:', error)
+            // Don't throw here - let the app handle the expired token
+          }
+        }
+      }
+      
       return token
     },
     

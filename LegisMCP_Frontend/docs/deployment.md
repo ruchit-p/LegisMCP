@@ -1,3 +1,40 @@
+# Frontend Deployment Guide
+
+## Overview
+
+This guide covers deploying the LegisMCP Frontend to various platforms. The application is optimized for serverless deployment with Next.js 14.
+
+## Deployment Checklist
+
+### Pre-Deployment
+
+- [ ] All environment variables documented
+- [ ] Auth0 production configuration complete
+- [ ] Stripe production keys ready
+- [ ] Custom domain configured
+- [ ] SSL certificates ready
+- [ ] Database migrations complete
+- [ ] API endpoints tested
+- [ ] Build tested locally
+
+### Security
+
+- [ ] Secrets stored securely
+- [ ] CORS properly configured
+- [ ] CSP headers set
+- [ ] Rate limiting enabled
+- [ ] Input validation active
+- [ ] XSS protection enabled
+
+### Performance
+
+- [ ] Images optimized
+- [ ] Code splitting verified
+- [ ] Bundle size checked
+- [ ] Lighthouse score > 90
+- [ ] CDN configured
+- [ ] Caching headers set
+
 # Vercel Deployment Guide
 
 This guide provides step-by-step instructions for deploying the LegisMCP Frontend to Vercel after migrating from Cloudflare Workers.
