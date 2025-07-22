@@ -260,3 +260,21 @@ INSERT OR IGNORE INTO error_events (event_type, severity, message, component, en
 ('AUTHENTICATION_ERROR', 'medium', 'Invalid JWT token in request', 'Frontend', '/api/auth/profile', 'GET', 401, 'test@example.com', 3, 'auth,jwt,token'),
 ('VALIDATION_ERROR', 'low', 'Invalid bill number format in search query', 'LegisAPI', '/api/search', 'GET', 400, 'user@example.com', 8, 'validation,search,format'),
 ('TIMEOUT_ERROR', 'high', 'Congress.gov API request timeout', 'LegisAPI', '/api/bills', 'GET', 504, 'admin@example.com', 2, 'timeout,external-api,congress');
+
+-- API Key Feedback table for tracking user feedback on API key generation feature
+CREATE TABLE IF NOT EXISTS api_key_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    thumbs_up BOOLEAN NOT NULL,
+    feedback_text TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    -- Ensure one feedback per user
+    UNIQUE(user_id)
+);
+
+-- Index for querying feedback by user
+CREATE INDEX idx_api_key_feedback_user_id ON api_key_feedback(user_id);
+
+-- Index for aggregating thumbs up/down stats
+CREATE INDEX idx_api_key_feedback_thumbs_up ON api_key_feedback(thumbs_up);
