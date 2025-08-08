@@ -129,8 +129,8 @@ In `src/index.ts`, update CORS for production:
 ```typescript
 app.use('*', cors({
   origin: [
-    'https://app.legismcp.com',
-    'https://legismcp.com',
+    'https://app.example.com',
+    'https://example.com',
     // Add other allowed origins
   ],
   credentials: true,

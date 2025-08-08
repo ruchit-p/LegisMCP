@@ -7,7 +7,7 @@ LegisMCP is a comprehensive legislative data platform built on modern cloud arch
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        UI[Next.js Frontend<br/>legismcp.com]
+        UI[Next.js Frontend<br/>example.com]
         MCP[MCP Clients<br/>AI Agents]
     end
     

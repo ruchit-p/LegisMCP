@@ -54,19 +54,19 @@
 **Allowed Callback URLs**:
 ```
 http://localhost:3000/api/auth/callback/auth0
-https://app.legismcp.com/api/auth/callback/auth0
+https://app.example.com/api/auth/callback/auth0
 ```
 
 **Allowed Logout URLs**:
 ```
 http://localhost:3000
-https://app.legismcp.com
+https://app.example.com
 ```
 
 **Allowed Web Origins**:
 ```
 http://localhost:3000
-https://app.legismcp.com
+https://app.example.com
 ```
 
 #### Advanced Settings
@@ -160,7 +160,7 @@ stripe prices create \
 
 1. Go to Stripe Dashboard → Developers → Webhooks
 2. Add endpoint:
-   - **URL**: `https://app.legismcp.com/api/webhooks/stripe`
+   - **URL**: `https://app.example.com/api/webhooks/stripe`
    - **Events**:
      - `checkout.session.completed`
      - `customer.subscription.created`
@@ -233,8 +233,8 @@ Set in your hosting platform:
 
 ```env
 # Production URLs
-APP_BASE_URL='https://app.legismcp.com'
-NEXT_PUBLIC_BASE_URL='https://app.legismcp.com'
+APP_BASE_URL='https://app.example.com'
+NEXT_PUBLIC_BASE_URL='https://app.example.com'
 MCP_SERVER_URL='https://mcp.example.com'
 
 # Use production Stripe keys

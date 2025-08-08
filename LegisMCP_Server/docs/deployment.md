@@ -134,7 +134,7 @@ In `src/index.ts`, update allowed origins:
 const ALLOWED_ORIGINS = [
   'https://playground.ai.cloudflare.com',
   'https://claude.ai',
-  'https://app.legismcp.com',
+  'https://app.example.com',
   // Add other production origins
 ];
 ```

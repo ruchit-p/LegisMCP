@@ -23,7 +23,7 @@ LegisMCP uses Auth0 for authentication, integrated through NextAuth.js (Auth.js)
 
 ## Components
 
-### 1. Next.js Frontend (legismcp.com)
+### 1. Next.js Frontend (example.com)
 - **Auth0 Application**: LegiUSA MCP Frontend
 - **Client ID**: `eUovWUOrn6gy4vIXHsxuFEOsoogZcVXJ`
 - **Type**: Regular Web Application
@@ -47,7 +47,7 @@ LegisMCP uses Auth0 for authentication, integrated through NextAuth.js (Auth.js)
 ## Authentication Flow
 
 ### Frontend User Authentication:
-1. User visits legismcp.com
+1. User visits example.com
 2. Clicks "Sign In" → redirected to Auth0
 3. User logs in with credentials
 4. Auth0 redirects back with authorization code
@@ -69,7 +69,7 @@ LegisMCP uses Auth0 for authentication, integrated through NextAuth.js (Auth.js)
 AUTH0_SECRET='[GENERATE-A-LONG-RANDOM-STRING]'
 
 # Application URLs
-AUTH0_BASE_URL='https://legismcp.com' # Use http://localhost:3000 for development
+AUTH0_BASE_URL='https://example.com' # Use http://localhost:3000 for development
 AUTH0_ISSUER_BASE_URL='https://your-tenant.us.auth0.com'
 
 # Frontend Application Credentials
@@ -99,12 +99,12 @@ node -e "console.log(crypto.randomBytes(32).toString('base64'))"
 The application is already configured with:
 - Callback URLs: 
   - `http://localhost:3000/api/auth/callback` (development)
-  - `https://legismcp.com/api/auth/callback` (production)
-  - `https://www.legismcp.com/api/auth/callback` (www subdomain)
+  - `https://example.com/api/auth/callback` (production)
+  - `https://www.example.com/api/auth/callback` (www subdomain)
 - Logout URLs:
   - `http://localhost:3000` (development)
-  - `https://legismcp.com` (production)
-  - `https://www.legismcp.com` (www subdomain)
+  - `https://example.com` (production)
+  - `https://www.example.com` (www subdomain)
 
 ### 3. Create Machine-to-Machine Application (if needed)
 If your frontend needs to make server-side API calls (e.g., from API routes), create an M2M application:

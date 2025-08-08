@@ -70,12 +70,12 @@ function getUserRole(email: string): 'user' | 'admin' | 'super_admin' {
   
   // Regular admin emails
   const adminEmails = [
-    'admin@legismcp.com',
+    'admin@example.com',
     'admin@yourdomain.com'
   ];
   
   const adminDomains = [
-    '@legismcp.com',
+    '@example.com',
     '@yourdomain.com'  // Your domain
   ];
   

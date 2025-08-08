@@ -530,7 +530,7 @@ describe('LegisMCP Integration', () => {
 ```typescript
 // Test against real server
 const TEST_CONFIG = {
-  endpoint: 'https://mcp-staging.legismcp.com/mcp',
+  endpoint: 'https://mcp-staging.example.com/mcp',
   testToken: process.env.TEST_AUTH_TOKEN
 };
 

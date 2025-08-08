@@ -4,7 +4,7 @@
 
 LegisMCP Frontend is a modern Next.js 14 application that provides a user-friendly interface for accessing legislative data through the MCP server. It features Auth0 authentication, Stripe subscription management, and a responsive design.
 
-**Production URL**: `https://app.legismcp.com`
+**Production URL**: `https://app.example.com`
 
 ## Table of Contents
 

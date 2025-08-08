@@ -91,7 +91,7 @@ headers: [
 ### Recommendation
 ```typescript
 cors({
-  origin: ['https://legismcp.com', 'http://localhost:3000'],
+  origin: ['https://example.com', 'http://localhost:3000'],
   credentials: true
 })
 ```

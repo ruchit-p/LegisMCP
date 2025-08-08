@@ -179,7 +179,7 @@ You'll need to update your Cloudflare Workers (LegisAPI and LegisMCP Server) to 
 1. **Add Custom Domain in Vercel:**
 
    - Go to Project Settings > Domains
-   - Add your custom domain (e.g., `legismcp.com`)
+   - Add your custom domain (e.g., `example.com`)
 
 2. **Update DNS Records:**
 
