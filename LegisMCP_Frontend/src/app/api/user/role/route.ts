@@ -91,13 +91,13 @@ export const GET = async () => {
 function getUserRole(email: string): 'user' | 'admin' {
   // Check if user is admin based on email domain or specific emails
   const adminEmails = [
-    'admin@legismcp.com',
+    'admin@example.com',
     'admin@example.com',
     'your-admin-email@example.com'
   ];
   
   const adminDomains = [
-    '@legismcp.com'
+    '@example.com'
   ];
   
   // Check specific admin emails

@@ -186,9 +186,9 @@ INSERT INTO plans (name, slug, billing_frequency, stripe_price_id, stripe_produc
 INSERT INTO auth_config (config_name, auth0_domain, auth0_client_id, auth0_audience, auth0_scope, allowed_callback_urls, allowed_logout_urls, allowed_origins) VALUES
 ('frontend', 'your-tenant.us.auth0.com', 'eUovWUOrn6gy4vIXHsxuFEOsoogZcVXJ', 'urn:legis-api', 
  'openid profile email offline_access read:bills read:members read:votes read:committees',
- '["http://localhost:3000/api/auth/callback", "https://legismcp.com/api/auth/callback", "https://www.legismcp.com/api/auth/callback"]',
- '["http://localhost:3000", "https://legismcp.com", "https://www.legismcp.com"]',
- '["http://localhost:3000", "https://legismcp.com", "https://www.legismcp.com"]');
+ '["http://localhost:3000/api/auth/callback", "https://example.com/api/auth/callback", "https://www.example.com/api/auth/callback"]',
+ '["http://localhost:3000", "https://example.com", "https://www.example.com"]',
+ '["http://localhost:3000", "https://example.com", "https://www.example.com"]');
 
 -- Create view for user subscription details
 CREATE VIEW user_subscription_details AS

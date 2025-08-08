@@ -23,7 +23,7 @@ cd LegisMCP_Frontend && npm run dev  # Port 3000
 **Production:**
 - API: `https://api.example.com`
 - MCP: `https://mcp.example.com`
-- Frontend: `https://legismcp.com`
+- Frontend: `https://example.com`
 
 **Documentation:**
 - `/docs/` - Architecture

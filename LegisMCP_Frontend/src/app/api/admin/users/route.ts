@@ -12,13 +12,13 @@ async function isUserAdmin(): Promise<boolean> {
     
     // Mock admin check - replace with actual database query
     const adminEmails = [
-      'admin@legismcp.com',
+      'admin@example.com',
       'admin@example.com',
       'your-admin-email@example.com'
     ];
     
     const adminDomains = [
-      '@legismcp.com'
+      '@example.com'
     ];
     
     return adminEmails.includes(userEmail) || 
@@ -74,7 +74,7 @@ export const GET = async (req: NextRequest) => {
       {
         id: 3,
         auth0_user_id: 'auth0|admin1',
-        email: 'admin@legismcp.com',
+        email: 'admin@example.com',
         name: 'Admin User',
         role: 'admin',
         plan: 'enterprise',
