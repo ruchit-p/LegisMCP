@@ -12,14 +12,11 @@ async function isUserAdmin(): Promise<boolean> {
     
     // Mock admin check - replace with actual database query
     const adminEmails = [
-      'admin@legismcp.com',
       'admin@example.com',
       'your-admin-email@example.com'
     ];
     
-    const adminDomains = [
-      '@legismcp.com'
-    ];
+    const adminDomains: string[] = [];
     
     return adminEmails.includes(userEmail) || 
            adminDomains.some(domain => userEmail.endsWith(domain));
