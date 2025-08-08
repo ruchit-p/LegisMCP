@@ -11,7 +11,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 UPDATE users SET role = 'user' WHERE role IS NULL;
 
 -- Optional: Set specific users as admin (update these email addresses as needed)
--- UPDATE users SET role = 'admin' WHERE email IN ('admin@legismcp.com', 'your-admin-email@example.com');
+-- UPDATE users SET role = 'admin' WHERE email IN ('admin@example.com', 'your-admin-email@example.com');
 
 -- Verify the migration
 SELECT COUNT(*) as total_users, role FROM users GROUP BY role;
