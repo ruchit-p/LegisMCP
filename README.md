@@ -151,11 +151,11 @@ See [Deployment Guide](./docs/deployment.md) for detailed instructions.
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) and [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file.
 
 ## 🙏 Acknowledgments
 
@@ -166,9 +166,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- Documentation: [docs.example.com](https://docs.example.com)
-- Issues: [GitHub Issues](https://github.com/yourusername/LegisMCP/issues)
-- Email: contact@example.com
+- Documentation: `https://docs.example.com`
+- Issues: use GitHub Issues
+
 
 ---
 
