@@ -1,0 +1,51 @@
+{
+  "name": "legismcp",
+  "version": "0.3.9",
+  "description": "Open-source MCP server for U.S. legislative data from Congress.gov",
+  "type": "module",
+  "bin": {
+    "legismcp": "bin/legismcp.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "start:stdio": "node --experimental-vm-modules dist/stdio.js",
+    "cf-typegen": "wrangler types",
+    "type-check": "npm run cf-typegen && tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "congress",
+    "legislative",
+    "bills",
+    "ai",
+    "model-context-protocol"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruchit-p/LegisMCP"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0",
+    "agents": "0.4.1",
+    "ai": "^6.0.86",
+    "wrangler": "^4.65.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.15",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  }
+}

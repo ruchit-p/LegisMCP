@@ -1,0 +1,14 @@
+# Source maps (not needed for consumers)
+dist/**/*.map
+dist/**/*.d.ts.map
+
+# Cloudflare-specific files
+wrangler.jsonc
+worker-configuration.d.ts
+migrations/
+
+# Dev/test files
+src/
+*.tgz
+.dev.vars
+test-*.md
